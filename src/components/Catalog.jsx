@@ -220,13 +220,16 @@ function Catalog() {
                 onClick={() => handleItemClick(item)}
                 className="catalog-card"
               >
-                <<div className="catalog-card-image">
-  {item.capa_url ? (
-    <img src={item.capa_url} alt={item.titulo} />
-  ) : (
-    getIcon(item.tipo)
-  )}
-</div>
+                <div className="catalog-card-image">
+                  {item.capa_url ? (
+                    <img 
+                      src={item.capa_url} 
+                      alt={item.titulo} 
+                    />
+                  ) : (
+                    getIcon(item.tipo)
+                  )}
+                </div>
                 <div style={{ flex: 1 }}>
                   <div className="catalog-card-title">{item.titulo}</div>
                   {item.autores && (
