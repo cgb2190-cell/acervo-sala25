@@ -122,8 +122,8 @@ function Reservas({ onBack }) {
     const reservas = getReservasDoHorario(dia, horario)
     if (reservas.length === 0) return '#ffffff'
     const todasDevolvidas = reservas.every(r => r.status === 'devolvido')
-    if (todasDevolvidas) return '#d9ead3'
-    return '#fff2cc'
+    if (todasDevolvidas) return 'var(--returned)'
+    return 'var(--reserved)'
   }
 
   function abrirModal(dia, horario, nomeDia) {
@@ -166,23 +166,23 @@ function Reservas({ onBack }) {
   }
 
   const getIcon = (tipo, size = 12) => {
-    if (tipo?.includes('livro')) return <BookOpen size={size} color="#2563eb" />
-    return <Gamepad2 size={size} color="#16a34a" />
+    if (tipo?.includes('livro')) return <BookOpen size={size} color="var(--primary)" />
+    return <Gamepad2 size={size} color="var(--secondary)" />
   }
 
   if (loading) return <div style={{ padding: 40 }}>Carregando...</div>
 
   return (
     <div style={{ maxWidth: '100%', margin: '0 auto', padding: 16 }}>
-      <button onClick={onBack} style={{ marginBottom: 20, cursor: 'pointer' }}>← Voltar</button>
-      <h1 style={{ textAlign: 'center' }}>Reservas</h1>
+      <button onClick={onBack} className="back-button" style={{ marginBottom: 20 }}>← Voltar</button>
+      <h1 className="page-title">Reservas</h1>
 
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', margin: '16px 0' }}>
         {semanas.map((s, idx) => (
           <button key={idx} onClick={() => selecionarSemana(idx)} style={{
             padding: '8px 12px',
-            backgroundColor: semanaSelecionada === idx ? '#1e3a5f' : '#e5e7eb',
-            color: semanaSelecionada === idx ? 'white' : '#374151',
+            backgroundColor: semanaSelecionada === idx ? 'var(--primary)' : 'var(--gray-200)',
+            color: semanaSelecionada === idx ? 'white' : 'var(--text-primary)',
             border: 'none',
             borderRadius: 8,
             cursor: 'pointer'
@@ -193,12 +193,12 @@ function Reservas({ onBack }) {
       </div>
 
       <div style={{ overflowX: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #ccc' }}>
+        <table className="reserva-table">
           <thead>
-            <tr style={{ backgroundColor: '#1e3a5f', color: 'white' }}>
-              <th style={{ padding: '10px 6px', border: '1px solid #ccc', fontSize: '12px', textAlign: 'center', width: '55px' }}>Horário</th>
+            <tr>
+              <th style={{ padding: '10px 6px', width: '55px' }}>Horário</th>
               {diasDaSemana.map((dia, idx) => (
-                <th key={idx} style={{ padding: '10px 4px', border: '1px solid #ccc', fontSize: '12px', textAlign: 'center', width: '95px' }}>
+                <th key={idx} style={{ padding: '10px 4px', width: '95px' }}>
                   {diasNomes[idx]}<br/>{formatarData(dia)}
                 </th>
               ))}
@@ -207,17 +207,17 @@ function Reservas({ onBack }) {
           <tbody>
             {horarios.map(horario => (
               <tr key={horario}>
-                <td style={{ padding: '6px 2px', border: '1px solid #ccc', textAlign: 'center', fontWeight: 'bold', fontSize: '11px', backgroundColor: '#f9fafb' }}>{horario}</td>
+                <td style={{ padding: '6px 2px', textAlign: 'center', fontWeight: 'bold', fontSize: '11px', backgroundColor: 'var(--gray-100)' }}>{horario}</td>
                 {diasDaSemana.map((dia, idx) => {
                   const bloqueado = isDiaBloqueado(dia)
-                  const cor = bloqueado ? '#e5e7eb' : getCorCelula(dia, horario)
+                  const cor = bloqueado ? 'var(--feriado)' : getCorCelula(dia, horario)
                   const reservasNoHorario = getReservasDoHorario(dia, horario)
                   const livre = !bloqueado
                   return (
-                    <td key={idx} style={{ padding: '4px', border: '1px solid #ccc', textAlign: 'center', backgroundColor: cor, cursor: livre ? 'pointer' : 'default', verticalAlign: 'top' }}
+                    <td key={idx} style={{ padding: '4px', textAlign: 'center', backgroundColor: cor, cursor: livre ? 'pointer' : 'default', verticalAlign: 'top' }}
                         onClick={() => livre && abrirModal(dia, horario, diasNomes[idx])}>
                       {bloqueado ? (
-                        <div style={{ fontSize: 10, color: '#9ca3af' }}>
+                        <div style={{ fontSize: 10, color: 'var(--text-secondary)' }}>
                           <CalendarX size={12} />
                           <div style={{ fontSize: 9 }}>{getMotivoBloqueio(dia)}</div>
                         </div>
@@ -227,14 +227,14 @@ function Reservas({ onBack }) {
                             <div key={r.id} style={{ marginBottom: 6, fontSize: 10, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', lineHeight: 1.3, wordBreak: 'break-word' }}>
                               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '3px', flexWrap: 'wrap' }}>
                                 {getIcon(r.acervo?.tipo, 10)}
-                                <span style={{ fontWeight: 'bold' }}>{r.acervo?.titulo}</span>
-                                {r.status === 'devolvido' && <span style={{ color: '#2d6a2d', fontWeight: 'bold' }}>✓</span>}
+                                <span style={{ fontWeight: 'bold', color: 'var(--text-primary)' }}>{r.acervo?.titulo}</span>
+                                {r.status === 'devolvido' && <span style={{ color: 'var(--secondary)', fontWeight: 'bold' }}>✓</span>}
                               </div>
-                              <div style={{ fontSize: 9, color: '#555' }}>({r.usuario_nome})</div>
+                              <div style={{ fontSize: 9, color: 'var(--text-secondary)' }}>({r.usuario_nome})</div>
                             </div>
                           ))}
                           <div style={{ marginTop: reservasNoHorario.length > 0 ? 4 : 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <CalendarPlus size={14} color="#9ca3af" />
+                            <CalendarPlus size={14} color="var(--text-muted)" />
                           </div>
                         </div>
                       )}
@@ -249,28 +249,28 @@ function Reservas({ onBack }) {
 
       {modalAberto && (
         <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 16 }}>
-          <div style={{ backgroundColor: 'white', borderRadius: 16, padding: 24, width: '100%', maxWidth: 400 }}>
+          <div style={{ backgroundColor: 'var(--bg-secondary)', borderRadius: 16, padding: 24, width: '100%', maxWidth: 400 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-              <h3 style={{ margin: 0 }}>Nova Reserva</h3>
-              <button onClick={() => setModalAberto(false)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
+              <h3 style={{ margin: 0, color: 'var(--text-primary)' }}>Nova Reserva</h3>
+              <button onClick={() => setModalAberto(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)' }}>
                 <X size={22} />
               </button>
             </div>
-            <div style={{ backgroundColor: '#f3f4f6', borderRadius: 8, padding: '10px 14px', marginBottom: 16, fontSize: 13 }}>
+            <div style={{ backgroundColor: 'var(--gray-100)', borderRadius: 8, padding: '10px 14px', marginBottom: 16, fontSize: 13, color: 'var(--text-primary)' }}>
               {diaSelecionado}, {dataSelecionada?.split('-').reverse().join('/')} — {horarioSelecionado}
             </div>
             {conflito && (
-              <div style={{ backgroundColor: '#fee2e2', padding: '10px 14px', marginBottom: 16, fontSize: 13, color: '#b91c1c', borderRadius: 8 }}>
+              <div style={{ backgroundColor: 'var(--danger-light)', padding: '10px 14px', marginBottom: 16, fontSize: 13, color: 'var(--danger)', borderRadius: 8 }}>
                 {conflito}
               </div>
             )}
             <div style={{ marginBottom: 14 }}>
-              <label style={{ display: 'block', fontWeight: 'bold', marginBottom: 6 }}>Seu nome</label>
-              <input type="text" value={nomeUsuario} onChange={e => setNomeUsuario(e.target.value)} placeholder="Nome completo" style={{ width: '100%', padding: 10, border: '1px solid #ccc', borderRadius: 8 }} />
+              <label style={{ display: 'block', fontWeight: 'bold', marginBottom: 6, color: 'var(--text-primary)' }}>Seu nome</label>
+              <input type="text" value={nomeUsuario} onChange={e => setNomeUsuario(e.target.value)} placeholder="Nome completo" className="input" style={{ width: '100%' }} />
             </div>
             <div style={{ marginBottom: 20 }}>
-              <label style={{ display: 'block', fontWeight: 'bold', marginBottom: 6 }}>Item a reservar</label>
-              <select value={itemSelecionado?.id || ''} onChange={e => setItemSelecionado(itens.find(i => i.id === e.target.value) || null)} style={{ width: '100%', padding: 10, border: '1px solid #ccc', borderRadius: 8 }}>
+              <label style={{ display: 'block', fontWeight: 'bold', marginBottom: 6, color: 'var(--text-primary)' }}>Item a reservar</label>
+              <select value={itemSelecionado?.id || ''} onChange={e => setItemSelecionado(itens.find(i => i.id === e.target.value) || null)} className="input" style={{ width: '100%' }}>
                 <option value="">-- Selecione um item --</option>
                 {itens.map(item => (
                   <option key={item.id} value={item.id}>
@@ -279,7 +279,7 @@ function Reservas({ onBack }) {
                 ))}
               </select>
             </div>
-            <button onClick={confirmarReserva} disabled={reservando || !itemSelecionado || !nomeUsuario.trim()} style={{ width: '100%', padding: 12, backgroundColor: reservando || !itemSelecionado || !nomeUsuario.trim() ? '#9ca3af' : '#1e3a5f', color: 'white', border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 'bold' }}>
+            <button onClick={confirmarReserva} disabled={reservando || !itemSelecionado || !nomeUsuario.trim()} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
               {reservando ? 'Reservando...' : 'Confirmar Reserva'}
             </button>
           </div>
