@@ -1,10 +1,7 @@
 import React from 'react'
-import { BookOpen, Calendar, CheckCircle, Trophy, Tag, Settings, Sun, Moon } from 'lucide-react'
-import { useTheme } from '../contexts/ThemeContext'
+import { BookOpen, Calendar, CheckCircle, Trophy, Tag, Settings } from 'lucide-react'
 
 function Menu({ active, onNavigate }) {
-  const { isDark, toggleTheme } = useTheme()
-
   const menuItems = [
     { id: 'catalog', label: 'Acervo', icon: <BookOpen size={18} /> },
     { id: 'reservas', label: 'Reservas', icon: <Calendar size={18} /> },
@@ -35,43 +32,20 @@ function Menu({ active, onNavigate }) {
         <button
           key={item.id}
           onClick={() => onNavigate(item.id)}
+          className={`menu-button ${active === item.id ? 'active' : ''}`}
           style={{
             display: 'flex',
             alignItems: 'center',
             gap: '4px',
             padding: '6px 10px',
-            backgroundColor: active === item.id ? 'var(--primary)' : 'transparent',
-            color: active === item.id ? 'white' : 'var(--text-primary)',
-            border: 'none',
-            borderRadius: '8px',
-            cursor: 'pointer',
             fontSize: '12px',
-            fontWeight: active === item.id ? 'bold' : 'normal',
-            transition: 'background-color 0.2s'
+            fontWeight: active === item.id ? 'bold' : 'normal'
           }}
         >
           {item.icon}
           {item.label}
         </button>
       ))}
-      <button
-        onClick={toggleTheme}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '4px',
-          padding: '6px 10px',
-          borderRadius: '8px',
-          border: '1px solid var(--border)',
-          background: 'transparent',
-          cursor: 'pointer',
-          color: 'var(--text-primary)',
-          fontSize: '12px'
-        }}
-      >
-        {isDark ? <Sun size={14} /> : <Moon size={14} />}
-        {isDark ? 'Claro' : 'Escuro'}
-      </button>
     </div>
   )
 }
