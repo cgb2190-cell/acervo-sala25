@@ -20,7 +20,8 @@ function Admin({ onBack }) {
     tematicas: '',
     tipo: 'livro_capa_dura',
     capa_url: '',
-    capa_file: null
+    capa_file: null,
+    capa_preview: null
   })
   
   // Dias bloqueados
@@ -32,9 +33,8 @@ function Admin({ onBack }) {
   const [temas, setTemas] = useState([])
   const [novoTema, setNovoTema] = useState('')
 
-  const SENHA_ADMIN = 'SPA25'
+  const SENHA_ADMIN = 'PBiasoli25!'
 
-  // Verificar autenticação ao carregar
   useEffect(() => {
     const autenticadoSalvo = localStorage.getItem('admin_autenticado')
     if (autenticadoSalvo === 'true') {
@@ -111,7 +111,17 @@ function Admin({ onBack }) {
         alert('Por favor, selecione um arquivo de imagem (jpg, png, etc)')
         return
       }
-      setFormData({ ...formData, capa_file: file })
+      
+      if (file.size > 5 * 1024 * 1024) {
+        alert('Arquivo muito grande. Máximo 5MB')
+        return
+      }
+      
+      const reader = new FileReader()
+      reader.onload = (event) => {
+        setFormData({ ...formData, capa_file: file, capa_preview: event.target.result })
+      }
+      reader.readAsDataURL(file)
     }
   }
 
@@ -199,7 +209,8 @@ function Admin({ onBack }) {
       tematicas: item.tematicas ? item.tematicas.join('; ') : '',
       tipo: item.tipo,
       capa_url: item.capa_url || '',
-      capa_file: null
+      capa_file: null,
+      capa_preview: item.capa_url || null
     })
   }
 
@@ -210,7 +221,8 @@ function Admin({ onBack }) {
       tematicas: '',
       tipo: 'livro_capa_dura',
       capa_url: '',
-      capa_file: null
+      capa_file: null,
+      capa_preview: null
     })
     setEditando(null)
   }
@@ -304,7 +316,6 @@ function Admin({ onBack }) {
     setSenha('')
   }
 
-  // Tela de login
   if (!autenticado) {
     return (
       <div style={{ maxWidth: '400px', margin: '0 auto', padding: '16px' }}>
@@ -317,17 +328,17 @@ function Admin({ onBack }) {
             background: 'none',
             border: 'none',
             cursor: 'pointer',
-            color: '#1e3a5f',
+            color: 'var(--primary)',
             marginBottom: '20px',
             fontSize: '14px'
           }}
         >
           <ArrowLeft size={18} /> Voltar
         </button>
-        <div style={{ backgroundColor: 'white', borderRadius: '16px', padding: '24px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+        <div style={{ backgroundColor: 'var(--bg-secondary)', borderRadius: '16px', padding: '24px', boxShadow: '0 2px 4px var(--shadow)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
-            <Lock size={32} color="#1e3a5f" />
-            <h2 style={{ margin: 0, color: '#1e3a5f' }}>Área Administrativa</h2>
+            <Lock size={32} color="var(--primary)" />
+            <h2 style={{ margin: 0, color: 'var(--primary)' }}>Área Administrativa</h2>
           </div>
           <form onSubmit={handleLogin}>
             <input
@@ -335,29 +346,14 @@ function Admin({ onBack }) {
               placeholder="Digite a senha"
               value={senha}
               onChange={(e) => setSenha(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '12px',
-                border: '1px solid #ccc',
-                borderRadius: '8px',
-                fontSize: '14px',
-                marginBottom: '12px',
-                boxSizing: 'border-box'
-              }}
+              className="input"
+              style={{ width: '100%', marginBottom: '12px' }}
             />
-            {erroSenha && <div style={{ color: '#dc2626', fontSize: '12px', marginBottom: '12px' }}>{erroSenha}</div>}
+            {erroSenha && <div style={{ color: 'var(--danger)', fontSize: '12px', marginBottom: '12px' }}>{erroSenha}</div>}
             <button
               type="submit"
-              style={{
-                width: '100%',
-                padding: '12px',
-                backgroundColor: '#1e3a5f',
-                color: 'white',
-                border: 'none',
-                borderRadius: '8px',
-                cursor: 'pointer',
-                fontWeight: 'bold'
-              }}
+              className="btn btn-primary"
+              style={{ width: '100%' }}
             >
               Entrar
             </button>
@@ -367,7 +363,6 @@ function Admin({ onBack }) {
     )
   }
 
-  // Painel administrativo
   return (
     <div style={{ maxWidth: '800px', margin: '0 auto', padding: '16px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
@@ -380,7 +375,7 @@ function Admin({ onBack }) {
             background: 'none',
             border: 'none',
             cursor: 'pointer',
-            color: '#1e3a5f',
+            color: 'var(--primary)',
             fontSize: '14px'
           }}
         >
@@ -393,7 +388,7 @@ function Admin({ onBack }) {
             alignItems: 'center',
             gap: '6px',
             padding: '6px 12px',
-            backgroundColor: '#ef4444',
+            backgroundColor: 'var(--danger)',
             color: 'white',
             border: 'none',
             borderRadius: '8px',
@@ -406,94 +401,65 @@ function Admin({ onBack }) {
         </button>
       </div>
 
-      <h1 style={{ textAlign: 'center', color: '#1e3a5f', marginBottom: '20px' }}>Administração</h1>
+      <h1 style={{ textAlign: 'center', color: 'var(--primary)', marginBottom: '20px' }}>Administração</h1>
 
-      {/* Abas */}
       <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', flexWrap: 'wrap' }}>
-        <button
-          onClick={() => setAba('acervo')}
-          style={{
-            padding: '8px 16px',
-            backgroundColor: aba === 'acervo' ? '#1e3a5f' : '#e5e7eb',
-            color: aba === 'acervo' ? 'white' : '#374151',
-            border: 'none',
-            borderRadius: '8px',
-            cursor: 'pointer'
-          }}
-        >
+        <button onClick={() => setAba('acervo')} className="btn" style={{ backgroundColor: aba === 'acervo' ? 'var(--primary)' : 'var(--gray-200)', color: aba === 'acervo' ? 'white' : 'var(--text-primary)' }}>
           <BookOpen size={16} style={{ display: 'inline', marginRight: '6px' }} />
           Acervo
         </button>
-        <button
-          onClick={() => setAba('bloqueados')}
-          style={{
-            padding: '8px 16px',
-            backgroundColor: aba === 'bloqueados' ? '#1e3a5f' : '#e5e7eb',
-            color: aba === 'bloqueados' ? 'white' : '#374151',
-            border: 'none',
-            borderRadius: '8px',
-            cursor: 'pointer'
-          }}
-        >
+        <button onClick={() => setAba('bloqueados')} className="btn" style={{ backgroundColor: aba === 'bloqueados' ? 'var(--primary)' : 'var(--gray-200)', color: aba === 'bloqueados' ? 'white' : 'var(--text-primary)' }}>
           <CalendarX size={16} style={{ display: 'inline', marginRight: '6px' }} />
           Dias Bloqueados
         </button>
-        <button
-          onClick={() => setAba('temas')}
-          style={{
-            padding: '8px 16px',
-            backgroundColor: aba === 'temas' ? '#1e3a5f' : '#e5e7eb',
-            color: aba === 'temas' ? 'white' : '#374151',
-            border: 'none',
-            borderRadius: '8px',
-            cursor: 'pointer'
-          }}
-        >
+        <button onClick={() => setAba('temas')} className="btn" style={{ backgroundColor: aba === 'temas' ? 'var(--primary)' : 'var(--gray-200)', color: aba === 'temas' ? 'white' : 'var(--text-primary)' }}>
           <Tag size={16} style={{ display: 'inline', marginRight: '6px' }} />
           Temas
         </button>
       </div>
 
-      {/* Aba Acervo */}
       {aba === 'acervo' && (
         <div>
-          <div style={{ backgroundColor: '#f3f4f6', padding: '16px', borderRadius: '12px', marginBottom: '20px' }}>
-            <h3 style={{ margin: '0 0 12px 0' }}>{editando ? 'Editar Item' : 'Adicionar Novo Item'}</h3>
+          <div style={{ backgroundColor: 'var(--gray-100)', padding: '16px', borderRadius: '12px', marginBottom: '20px' }}>
+            <h3 style={{ margin: '0 0 12px 0', color: 'var(--text-primary)' }}>{editando ? 'Editar Item' : 'Adicionar Novo Item'}</h3>
             <div style={{ marginBottom: '8px' }}>
               <input
                 type="text"
                 placeholder="Título *"
                 value={formData.titulo}
                 onChange={(e) => setFormData({ ...formData, titulo: e.target.value })}
-                style={{ width: '100%', padding: '8px', marginBottom: '8px', border: '1px solid #ccc', borderRadius: '6px', boxSizing: 'border-box' }}
+                className="input"
+                style={{ width: '100%', marginBottom: '8px' }}
               />
               <input
                 type="text"
                 placeholder="Autores (separados por ;)"
                 value={formData.autores}
                 onChange={(e) => setFormData({ ...formData, autores: e.target.value })}
-                style={{ width: '100%', padding: '8px', marginBottom: '8px', border: '1px solid #ccc', borderRadius: '6px', boxSizing: 'border-box' }}
+                className="input"
+                style={{ width: '100%', marginBottom: '8px' }}
               />
               <input
                 type="text"
                 placeholder="Temáticas (separadas por ;)"
                 value={formData.tematicas}
                 onChange={(e) => setFormData({ ...formData, tematicas: e.target.value })}
-                style={{ width: '100%', padding: '8px', marginBottom: '8px', border: '1px solid #ccc', borderRadius: '6px', boxSizing: 'border-box' }}
+                className="input"
+                style={{ width: '100%', marginBottom: '8px' }}
               />
               <select
                 value={formData.tipo}
                 onChange={(e) => setFormData({ ...formData, tipo: e.target.value })}
-                style={{ width: '100%', padding: '8px', marginBottom: '8px', border: '1px solid #ccc', borderRadius: '6px' }}
+                className="input"
+                style={{ width: '100%', marginBottom: '8px' }}
               >
                 <option value="livro_capa_dura">Livro Capa Dura</option>
                 <option value="livro_capa_mole">Livro Capa Mole</option>
                 <option value="jogo">Jogo</option>
               </select>
               
-              {/* Upload de imagem */}
               <div style={{ marginTop: '12px', marginBottom: '8px' }}>
-                <label style={{ display: 'block', marginBottom: '4px', fontSize: '12px', fontWeight: 'bold', color: '#374151' }}>
+                <label style={{ display: 'block', marginBottom: '4px', fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>
                   <ImageIcon size={14} style={{ display: 'inline', marginRight: '4px' }} />
                   Capa (imagem)
                 </label>
@@ -503,10 +469,11 @@ function Admin({ onBack }) {
                     alignItems: 'center',
                     gap: '6px',
                     padding: '8px 12px',
-                    backgroundColor: '#e5e7eb',
+                    backgroundColor: 'var(--gray-200)',
                     borderRadius: '6px',
                     cursor: 'pointer',
-                    fontSize: '12px'
+                    fontSize: '12px',
+                    color: 'var(--text-primary)'
                   }}>
                     <Upload size={14} />
                     Selecionar imagem
@@ -518,55 +485,30 @@ function Admin({ onBack }) {
                     />
                   </label>
                   {formData.capa_file && (
-                    <span style={{ fontSize: '11px', color: '#10b981' }}>
+                    <span style={{ fontSize: '11px', color: 'var(--secondary)' }}>
                       Arquivo selecionado: {formData.capa_file.name}
                     </span>
                   )}
-                  {formData.capa_url && !formData.capa_file && (
-                    <span style={{ fontSize: '11px', color: '#6b7280' }}>
-                      Imagem atual já cadastrada
-                    </span>
-                  )}
                 </div>
+                {formData.capa_preview && (
+                  <div style={{ marginTop: '8px' }}>
+                    <img src={formData.capa_preview} alt="Preview" style={{ width: '60px', height: '80px', objectFit: 'cover', borderRadius: '8px' }} />
+                  </div>
+                )}
                 {uploading && (
-                  <div style={{ fontSize: '11px', color: '#2563eb', marginTop: '4px' }}>
+                  <div style={{ fontSize: '11px', color: 'var(--primary)', marginTop: '4px' }}>
                     Enviando imagem...
                   </div>
                 )}
               </div>
             </div>
             <div style={{ display: 'flex', gap: '8px' }}>
-              <button
-                onClick={salvarItem}
-                disabled={uploading}
-                style={{
-                  padding: '8px 16px',
-                  backgroundColor: '#10b981',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '6px',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  opacity: uploading ? 0.6 : 1
-                }}
-              >
+              <button onClick={salvarItem} disabled={uploading} className="btn btn-secondary" style={{ opacity: uploading ? 0.6 : 1 }}>
                 <Save size={16} />
                 {editando ? 'Atualizar' : 'Adicionar'}
               </button>
               {editando && (
-                <button
-                  onClick={limparForm}
-                  style={{
-                    padding: '8px 16px',
-                    backgroundColor: '#6b7280',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '6px',
-                    cursor: 'pointer'
-                  }}
-                >
+                <button onClick={limparForm} className="btn" style={{ backgroundColor: 'var(--gray-400)', color: 'white' }}>
                   Cancelar
                 </button>
               )}
@@ -575,23 +517,17 @@ function Admin({ onBack }) {
 
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
-              <h3 style={{ margin: 0 }}>Itens do Acervo ({itens.length})</h3>
+              <h3 style={{ margin: 0, color: 'var(--text-primary)' }}>Itens do Acervo ({itens.length})</h3>
               <div style={{ position: 'relative' }}>
                 <input
                   type="text"
                   placeholder="Buscar item..."
                   value={buscaAcervo}
                   onChange={(e) => setBuscaAcervo(e.target.value)}
-                  style={{
-                    padding: '6px 12px',
-                    paddingLeft: '28px',
-                    border: '1px solid #ccc',
-                    borderRadius: '20px',
-                    fontSize: '12px',
-                    width: '180px'
-                  }}
+                  className="input"
+                  style={{ padding: '6px 12px', paddingLeft: '28px', fontSize: '12px', width: '180px' }}
                 />
-                <Search size={14} style={{ position: 'absolute', left: '8px', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af' }} />
+                <Search size={14} style={{ position: 'absolute', left: '8px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
                 {buscaAcervo && (
                   <button
                     onClick={() => setBuscaAcervo('')}
@@ -604,7 +540,7 @@ function Admin({ onBack }) {
                       border: 'none',
                       cursor: 'pointer',
                       fontSize: '12px',
-                      color: '#9ca3af'
+                      color: 'var(--text-secondary)'
                     }}
                   >
                     ✕
@@ -621,32 +557,26 @@ function Admin({ onBack }) {
                   (item.autores && item.autores.toLowerCase().includes(buscaAcervo.toLowerCase()))
                 )
                 .map(item => (
-                <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px', borderBottom: '1px solid #e5e7eb' }}>
-                  <div>
-                    <div style={{ fontWeight: 'bold' }}>{item.titulo}</div>
-                    <div style={{ fontSize: '11px', color: '#6b7280' }}>{item.tipo === 'jogo' ? 'Jogo' : 'Livro'}</div>
-                    {item.capa_url && (
-                      <div style={{ fontSize: '10px', color: '#9ca3af' }}>Com capa</div>
-                    )}
+                  <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px', borderBottom: '1px solid var(--border)' }}>
+                    <div>
+                      <div style={{ fontWeight: 'bold', color: 'var(--text-primary)' }}>{item.titulo}</div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{item.tipo === 'jogo' ? 'Jogo' : 'Livro'}</div>
+                      {item.capa_url && (
+                        <div style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>Com capa</div>
+                      )}
+                    </div>
+                    <div>
+                      <button onClick={() => editarItem(item)} style={{ background: 'none', border: 'none', cursor: 'pointer', marginRight: '8px', color: 'var(--primary)' }}>
+                        <Edit size={18} />
+                      </button>
+                      <button onClick={() => excluirItem(item.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--danger)' }}>
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
                   </div>
-                  <div>
-                    <button
-                      onClick={() => editarItem(item)}
-                      style={{ background: 'none', border: 'none', cursor: 'pointer', marginRight: '8px', color: '#2563eb' }}
-                    >
-                      <Edit size={18} />
-                    </button>
-                    <button
-                      onClick={() => excluirItem(item.id)}
-                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#dc2626' }}
-                    >
-                      <Trash2 size={18} />
-                    </button>
-                  </div>
-                </div>
-              ))}
+                ))}
               {buscaAcervo && itens.filter(i => i.titulo.toLowerCase().includes(buscaAcervo.toLowerCase())).length === 0 && (
-                <div style={{ textAlign: 'center', padding: '20px', color: '#9ca3af' }}>
+                <div style={{ textAlign: 'center', padding: '20px', color: 'var(--text-secondary)' }}>
                   Nenhum item encontrado para "{buscaAcervo}"
                 </div>
               )}
@@ -655,56 +585,26 @@ function Admin({ onBack }) {
         </div>
       )}
 
-      {/* Aba Dias Bloqueados */}
       {aba === 'bloqueados' && (
         <div>
-          <div style={{ backgroundColor: '#f3f4f6', padding: '16px', borderRadius: '12px', marginBottom: '20px' }}>
-            <h3 style={{ margin: '0 0 12px 0' }}>Adicionar Bloqueio</h3>
-            <input
-              type="date"
-              value={novaData}
-              onChange={(e) => setNovaData(e.target.value)}
-              style={{ width: '100%', padding: '8px', marginBottom: '8px', border: '1px solid #ccc', borderRadius: '6px', boxSizing: 'border-box' }}
-            />
-            <input
-              type="text"
-              placeholder="Motivo (ex: Feriado, Greve, Recesso)"
-              value={novoMotivo}
-              onChange={(e) => setNovoMotivo(e.target.value)}
-              style={{ width: '100%', padding: '8px', marginBottom: '8px', border: '1px solid #ccc', borderRadius: '6px', boxSizing: 'border-box' }}
-            />
-            <button
-              onClick={adicionarDiaBloqueado}
-              style={{
-                padding: '8px 16px',
-                backgroundColor: '#10b981',
-                color: 'white',
-                border: 'none',
-                borderRadius: '6px',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px'
-              }}
-            >
-              <Plus size={16} />
-              Adicionar
+          <div style={{ backgroundColor: 'var(--gray-100)', padding: '16px', borderRadius: '12px', marginBottom: '20px' }}>
+            <h3 style={{ margin: '0 0 12px 0', color: 'var(--text-primary)' }}>Adicionar Bloqueio</h3>
+            <input type="date" value={novaData} onChange={(e) => setNovaData(e.target.value)} className="input" style={{ width: '100%', marginBottom: '8px' }} />
+            <input type="text" placeholder="Motivo (ex: Feriado, Greve, Recesso)" value={novoMotivo} onChange={(e) => setNovoMotivo(e.target.value)} className="input" style={{ width: '100%', marginBottom: '8px' }} />
+            <button onClick={adicionarDiaBloqueado} className="btn btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Plus size={16} /> Adicionar
             </button>
           </div>
-
           <div>
-            <h3>Dias Bloqueados ({diasBloqueados.length})</h3>
+            <h3 style={{ color: 'var(--text-primary)' }}>Dias Bloqueados ({diasBloqueados.length})</h3>
             <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
               {diasBloqueados.map(dia => (
-                <div key={dia.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px', borderBottom: '1px solid #e5e7eb' }}>
+                <div key={dia.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px', borderBottom: '1px solid var(--border)' }}>
                   <div>
-                    <div>{new Date(dia.data).toLocaleDateString('pt-BR')}</div>
-                    <div style={{ fontSize: '11px', color: '#6b7280' }}>{dia.motivo}</div>
+                    <div style={{ color: 'var(--text-primary)' }}>{new Date(dia.data).toLocaleDateString('pt-BR')}</div>
+                    <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{dia.motivo}</div>
                   </div>
-                  <button
-                    onClick={() => removerDiaBloqueado(dia.id)}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#dc2626' }}
-                  >
+                  <button onClick={() => removerDiaBloqueado(dia.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--danger)' }}>
                     <Trash2 size={18} />
                   </button>
                 </div>
@@ -714,48 +614,23 @@ function Admin({ onBack }) {
         </div>
       )}
 
-      {/* Aba Temas */}
       {aba === 'temas' && (
         <div>
-          <div style={{ backgroundColor: '#f3f4f6', padding: '16px', borderRadius: '12px', marginBottom: '20px' }}>
-            <h3 style={{ margin: '0 0 12px 0' }}>Adicionar Tema</h3>
-            <input
-              type="text"
-              placeholder="Nome do tema"
-              value={novoTema}
-              onChange={(e) => setNovoTema(e.target.value)}
-              style={{ width: '100%', padding: '8px', marginBottom: '8px', border: '1px solid #ccc', borderRadius: '6px', boxSizing: 'border-box' }}
-            />
-            <button
-              onClick={adicionarTema}
-              style={{
-                padding: '8px 16px',
-                backgroundColor: '#10b981',
-                color: 'white',
-                border: 'none',
-                borderRadius: '6px',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px'
-              }}
-            >
-              <Plus size={16} />
-              Adicionar Tema
+          <div style={{ backgroundColor: 'var(--gray-100)', padding: '16px', borderRadius: '12px', marginBottom: '20px' }}>
+            <h3 style={{ margin: '0 0 12px 0', color: 'var(--text-primary)' }}>Adicionar Tema</h3>
+            <input type="text" placeholder="Nome do tema" value={novoTema} onChange={(e) => setNovoTema(e.target.value)} className="input" style={{ width: '100%', marginBottom: '8px' }} />
+            <button onClick={adicionarTema} className="btn btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Plus size={16} /> Adicionar Tema
             </button>
           </div>
-
           <div>
-            <h3>Temas Disponíveis ({temas.length})</h3>
+            <h3 style={{ color: 'var(--text-primary)' }}>Temas Disponíveis ({temas.length})</h3>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', maxHeight: '400px', overflowY: 'auto' }}>
               {temas.map(tema => (
-                <div key={tema.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: '#f3f4f6', padding: '6px 12px', borderRadius: '20px' }}>
-                  <Tag size={14} color="#6b7280" />
-                  <span>{tema.nome}</span>
-                  <button
-                    onClick={() => removerTema(tema.id, tema.nome)}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#dc2626', display: 'flex', alignItems: 'center' }}
-                  >
+                <div key={tema.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: 'var(--gray-100)', padding: '6px 12px', borderRadius: '20px' }}>
+                  <Tag size={14} color="var(--text-secondary)" />
+                  <span style={{ color: 'var(--text-primary)' }}>{tema.nome}</span>
+                  <button onClick={() => removerTema(tema.id, tema.nome)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--danger)', display: 'flex', alignItems: 'center' }}>
                     <X size={14} />
                   </button>
                 </div>
