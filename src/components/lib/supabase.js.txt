@@ -3,4 +3,14 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = 'https://egtseoxoufhwysdtsjmi.supabase.co'
 const supabaseAnonKey = 'sb_publishable_WF8hk5QCmFAIAznCsLBMEg_MW2B3lUv'
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+// Forçar envio da chave em todas as requisições
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    persistSession: false,
+  },
+  global: {
+    headers: {
+      'apikey': supabaseAnonKey,
+    },
+  },
+})
