@@ -45,7 +45,7 @@ function ItemDetail({ itemId, onBack }) {
   }
 
   if (!item) {
-    return <div style={{ textAlign: 'center', padding: '40px' }}>Item nao encontrado</div>
+    return <div style={{ textAlign: 'center', padding: '40px' }}>Item não encontrado</div>
   }
 
   return (
@@ -119,7 +119,7 @@ function ItemDetail({ itemId, onBack }) {
 
         {item.tematicas && item.tematicas.length > 0 && (
           <div style={{ marginBottom: '16px' }}>
-            <h3 style={{ fontSize: '14px', fontWeight: 'bold', color: '#374151', marginBottom: '8px' }}>Tematicas</h3>
+            <h3 style={{ fontSize: '14px', fontWeight: 'bold', color: '#374151', marginBottom: '8px' }}>Temáticas</h3>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
               {item.tematicas.map(tema => (
                 <span 

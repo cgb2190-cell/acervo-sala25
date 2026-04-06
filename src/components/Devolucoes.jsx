@@ -126,7 +126,7 @@ function Devolucoes({ onBack }) {
     } else if (data && !data.success) {
       alert(data.message)
     } else {
-      alert('Devolução registrada com sucesso!')
+      alert('✅ Devolução registrada com sucesso!')
       setLivroSelecionado('')
       setSlotSelecionado('')
       setNomeSelecionado('')

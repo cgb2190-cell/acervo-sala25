@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
-import { BookOpen, Gamepad2, Filter, Search, Sparkles } from 'lucide-react'
+import { BookOpen, Gamepad2, Filter, Search } from 'lucide-react'
 import ItemDetail from './ItemDetail'
 import Reservas from './Reservas'
 import Devolucoes from './Devolucoes'
@@ -57,9 +57,9 @@ function Catalog() {
 
   const getIcon = (tipo) => {
     if (tipo && tipo.includes('livro')) {
-      return <BookOpen size={24} color="var(--primary)" />
+      return <BookOpen size={24} color="#2563eb" />
     }
-    return <Gamepad2 size={24} color="var(--secondary)" />
+    return <Gamepad2 size={24} color="#16a34a" />
   }
 
   const handleItemClick = (item) => {
@@ -70,7 +70,6 @@ function Catalog() {
     setSelectedItem(null)
   }
 
-  // Renderização das páginas
   if (paginaAtual === 'admin') {
     return (
       <>
@@ -123,45 +122,32 @@ function Catalog() {
     return (
       <>
         <Menu active="catalog" onNavigate={handleNavigate} />
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
-          <div style={{ textAlign: 'center' }}>
-            <Sparkles size={40} color="var(--primary)" style={{ marginBottom: '16px', animation: 'pulse 1.5s infinite' }} />
-            <p style={{ color: 'var(--text-secondary)' }}>Carregando acervo...</p>
-          </div>
-        </div>
+        <div style={{ textAlign: 'center', padding: '40px' }}>Carregando acervo...</div>
       </>
     )
   }
 
-  // Catálogo principal
   return (
     <>
       <Menu active="catalog" onNavigate={handleNavigate} />
-      <div className="fade-in" style={{ maxWidth: '600px', margin: '0 auto', padding: '16px' }}>
-        <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-          <h1 style={{ 
-            fontSize: '28px', 
-            fontWeight: 'bold', 
-            background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            marginBottom: '4px'
-          }}>
-            Acervo Sala 25
-          </h1>
-          <p style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{items.length} itens disponíveis</p>
-        </div>
+      <div style={{ maxWidth: '600px', margin: '0 auto', padding: '16px' }}>
+        <h1 style={{ textAlign: 'center', color: '#1e3a5f', marginBottom: '20px' }}>Acervo Sala 25</h1>
         
-        {/* Busca */}
         <div style={{ marginBottom: '16px' }}>
-          <div className="search-container">
-            <Search size={20} color="var(--text-muted)" />
+          <div style={{ display: 'flex', alignItems: 'center', backgroundColor: '#f3f4f6', borderRadius: '8px', padding: '8px 12px', gap: '8px' }}>
+            <Search size={20} color="#6b7280" />
             <input
               type="text"
-              placeholder="Buscar por título ou autor..."
+              placeholder="Buscar por titulo ou autor..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="search-input"
+              style={{
+                flex: 1,
+                border: 'none',
+                backgroundColor: 'transparent',
+                outline: 'none',
+                fontSize: '14px'
+              }}
             />
             {searchTerm && (
               <button
@@ -171,7 +157,7 @@ function Catalog() {
                   border: 'none',
                   cursor: 'pointer',
                   fontSize: '16px',
-                  color: 'var(--text-muted)'
+                  color: '#6b7280'
                 }}
               >
                 ✕
@@ -180,69 +166,119 @@ function Catalog() {
           </div>
         </div>
         
-        {/* Filtros */}
         <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
           <button 
             onClick={() => setFilter('todos')}
-            className={`filter-button ${filter === 'todos' ? 'filter-button-active' : 'filter-button-inactive'}`}
+            style={{ 
+              flex: 1, 
+              padding: '10px', 
+              border: 'none', 
+              borderRadius: '8px', 
+              cursor: 'pointer',
+              backgroundColor: filter === 'todos' ? '#1e3a5f' : '#e5e7eb',
+              color: filter === 'todos' ? 'white' : '#374151',
+              fontWeight: 'bold',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px'
+            }}
           >
             <Filter size={16} />
             Todos
           </button>
           <button 
             onClick={() => setFilter('livros')}
-            className={`filter-button ${filter === 'livros' ? 'filter-button-active' : 'filter-button-inactive'}`}
+            style={{ 
+              flex: 1, 
+              padding: '10px', 
+              border: 'none', 
+              borderRadius: '8px', 
+              cursor: 'pointer',
+              backgroundColor: filter === 'livros' ? '#1e3a5f' : '#e5e7eb',
+              color: filter === 'livros' ? 'white' : '#374151',
+              fontWeight: 'bold',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px'
+            }}
           >
             <BookOpen size={16} />
             Livros
           </button>
           <button 
             onClick={() => setFilter('jogos')}
-            className={`filter-button ${filter === 'jogos' ? 'filter-button-active' : 'filter-button-inactive'}`}
+            style={{ 
+              flex: 1, 
+              padding: '10px', 
+              border: 'none', 
+              borderRadius: '8px', 
+              cursor: 'pointer',
+              backgroundColor: filter === 'jogos' ? '#1e3a5f' : '#e5e7eb',
+              color: filter === 'jogos' ? 'white' : '#374151',
+              fontWeight: 'bold',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px'
+            }}
           >
             <Gamepad2 size={16} />
             Jogos
           </button>
         </div>
 
-        {/* Lista de itens */}
         <div>
           {filteredItems.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--text-muted)', backgroundColor: 'var(--bg-card)', borderRadius: '16px' }}>
-              <Search size={32} style={{ marginBottom: '12px', opacity: 0.5 }} />
-              <p>Nenhum item encontrado</p>
-              <p style={{ fontSize: '12px', marginTop: '4px' }}>Tente ajustar sua busca</p>
+            <div style={{ textAlign: 'center', padding: '40px', color: '#9ca3af' }}>
+              Nenhum item encontrado
             </div>
           ) : (
             filteredItems.map(item => (
               <div 
                 key={item.id} 
                 onClick={() => handleItemClick(item)}
-                className="catalog-card"
+                style={{ 
+                  background: 'white', 
+                  borderRadius: '12px', 
+                  padding: '12px', 
+                  marginBottom: '12px', 
+                  display: 'flex', 
+                  gap: '12px',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                  cursor: 'pointer'
+                }}
               >
-                <div className="catalog-card-image">
+                <div style={{ 
+                  width: '64px', 
+                  height: '80px', 
+                  backgroundColor: '#e5e7eb', 
+                  borderRadius: '8px', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center'
+                }}>
                   {item.capa_url ? (
                     <img 
                       src={item.capa_url} 
                       alt={item.titulo} 
+                      style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }} 
                     />
                   ) : (
                     getIcon(item.tipo)
                   )}
                 </div>
                 <div style={{ flex: 1 }}>
-                  <div className="catalog-card-title">{item.titulo}</div>
+                  <div style={{ fontWeight: 'bold', color: '#1f2937', marginBottom: '4px' }}>{item.titulo}</div>
                   {item.autores && (
-                    <div className="catalog-card-author">{item.autores}</div>
+                    <div style={{ fontSize: '11px', color: '#6b7280', marginBottom: '8px' }}>{item.autores}</div>
                   )}
                   {item.tematicas && item.tematicas.length > 0 && (
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
                       {item.tematicas.slice(0, 3).map(tema => (
-                        <span key={tema} style={{ fontSize: '9px', backgroundColor: 'var(--gray-100)', padding: '2px 8px', borderRadius: '12px', color: 'var(--text-secondary)' }}>{tema}</span>
+                        <span key={tema} style={{ fontSize: '9px', backgroundColor: '#f3f4f6', padding: '2px 8px', borderRadius: '12px' }}>{tema}</span>
                       ))}
-                      {item.tematicas.length > 3 && (
-                        <span style={{ fontSize: '9px', color: 'var(--text-muted)' }}>+{item.tematicas.length - 3}</span>
-                      )}
                     </div>
                   )}
                 </div>
@@ -251,9 +287,8 @@ function Catalog() {
           )}
         </div>
 
-        {/* Total */}
-        <div style={{ textAlign: 'center', fontSize: '12px', color: 'var(--text-muted)', marginTop: '16px', padding: '16px' }}>
-          Mostrando {filteredItems.length} de {items.length} itens
+        <div style={{ textAlign: 'center', fontSize: '12px', color: '#9ca3af', marginTop: '16px' }}>
+          Total: {filteredItems.length} itens
         </div>
       </div>
     </>

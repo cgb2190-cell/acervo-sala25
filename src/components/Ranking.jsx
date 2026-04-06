@@ -47,7 +47,7 @@ function Ranking({ onBack }) {
   const maxReservas = ranking.length > 0 ? ranking[0].total_reservas : 0
 
   return (
-    <div style={{ maxWidth: '600px', margin: '0 auto', padding: '16px' }}>
+    <div style={{ maxWidth: '600px', margin: '0 auto', padding: 16 }}>
       <button
         onClick={onBack}
         style={{
@@ -65,11 +65,9 @@ function Ranking({ onBack }) {
         <ArrowLeft size={18} /> Voltar
       </button>
 
-      <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-        <h1 style={{ textAlign: 'center', color: '#1e3a5f', marginBottom: '32px' }}>
-  Ranking de Uso
-</h1>
-      </div>
+      <h1 style={{ textAlign: 'center', color: '#1e3a5f', marginBottom: '20px' }}>
+        Ranking de Uso
+      </h1>
 
       {ranking.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '40px', color: '#9ca3af', backgroundColor: '#f3f4f6', borderRadius: '12px' }}>

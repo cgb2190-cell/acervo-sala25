@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
-import { ArrowLeft, BookOpen, Gamepad2, Search, X } from 'lucide-react'
+import { ArrowLeft, BookOpen, Gamepad2, X } from 'lucide-react'
 
 function BuscaTemas({ onBack }) {
   const [temas, setTemas] = useState([])
   const [temasSelecionados, setTemasSelecionados] = useState([])
-  const [modoBusca, setModoBusca] = useState('ou') // 'ou' ou 'e'
+  const [modoBusca, setModoBusca] = useState('ou')
   const [resultados, setResultados] = useState([])
   const [loading, setLoading] = useState(false)
   const [todosItens, setTodosItens] = useState([])
@@ -50,7 +50,7 @@ function BuscaTemas({ onBack }) {
     setResultados([])
   }
 
-  function buscar() {
+  useEffect(() => {
     if (temasSelecionados.length === 0) {
       setResultados([])
       return
@@ -62,21 +62,15 @@ function BuscaTemas({ onBack }) {
       if (!item.tematicas || item.tematicas.length === 0) return false
       
       if (modoBusca === 'ou') {
-        // Qualquer temática (OU)
         return temasSelecionados.some(tema => item.tematicas.includes(tema))
       } else {
-        // Todas as temáticas (E)
         return temasSelecionados.every(tema => item.tematicas.includes(tema))
       }
     })
 
     setResultados(filtrados)
     setLoading(false)
-  }
-
-  useEffect(() => {
-    buscar()
-  }, [temasSelecionados, modoBusca])
+  }, [temasSelecionados, modoBusca, todosItens])
 
   const getIcon = (tipo) => {
     if (tipo?.includes('livro')) return <BookOpen size={16} color="#2563eb" />
@@ -89,7 +83,7 @@ function BuscaTemas({ onBack }) {
   }
 
   return (
-    <div style={{ maxWidth: '600px', margin: '0 auto', padding: '16px' }}>
+    <div style={{ maxWidth: '600px', margin: '0 auto', padding: 16 }}>
       <button
         onClick={onBack}
         style={{
@@ -111,7 +105,6 @@ function BuscaTemas({ onBack }) {
         Buscar por Temáticas
       </h1>
 
-      {/* Modo de busca */}
       <div style={{ marginBottom: '16px', display: 'flex', gap: '10px', justifyContent: 'center' }}>
         <button
           onClick={() => setModoBusca('ou')}
@@ -145,7 +138,6 @@ function BuscaTemas({ onBack }) {
         </button>
       </div>
 
-      {/* Chips de temas */}
       <div style={{ marginBottom: '16px' }}>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', maxHeight: '200px', overflowY: 'auto', padding: '8px', backgroundColor: '#f9fafb', borderRadius: '12px' }}>
           {temas.map(tema => (
@@ -170,7 +162,6 @@ function BuscaTemas({ onBack }) {
         </div>
       </div>
 
-      {/* Botão limpar */}
       {temasSelecionados.length > 0 && (
         <div style={{ marginBottom: '16px', textAlign: 'center' }}>
           <button
@@ -193,7 +184,6 @@ function BuscaTemas({ onBack }) {
         </div>
       )}
 
-      {/* Resultados */}
       <div style={{ marginTop: '20px' }}>
         <div style={{ marginBottom: '12px', fontSize: '12px', color: '#6b7280' }}>
           {temasSelecionados.length === 0 ? (

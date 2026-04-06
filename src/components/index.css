@@ -1,51 +1,63 @@
-/* Cards do catálogo - corrigido */
-.catalog-card {
-  background: var(--bg-card);
-  border-radius: 16px;
-  padding: 12px;
-  margin-bottom: 12px;
-  display: flex;
-  gap: 12px;
-  box-shadow: 0 1px 3px var(--shadow);
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f0f4f8;
+  color: #1e293b;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #e2e8f0;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #94a3b8;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
+
+button {
   cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: all 0.2s;
 }
 
-.catalog-card-image {
-  width: 64px;
-  min-width: 64px;
-  height: 80px;
-  background-color: var(--gray-200);
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  flex-shrink: 0;
-}
-
-.catalog-card-image img {
-  width: 64px;
-  height: 80px;
-  object-fit: cover;
-  border-radius: 10px;
-}
-
-.catalog-card-image svg {
-  width: 32px;
-  height: 32px;
-}
-
-.catalog-card-title {
-  font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: 4px;
-  font-size: 15px;
-  line-height: 1.3;
-}
-
-.catalog-card-author {
-  font-size: 11px;
-  color: var(--text-secondary);
-  margin-bottom: 8px;
+input, select, textarea {
+  font-family: inherit;
 }
