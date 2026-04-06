@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
-import { BookOpen, Gamepad2, Filter, Search } from 'lucide-react'
+import { BookOpen, Gamepad2, Filter, Search, Sparkles } from 'lucide-react'
 import ItemDetail from './ItemDetail'
 import Reservas from './Reservas'
 import Devolucoes from './Devolucoes'
@@ -98,7 +98,7 @@ function Catalog() {
     return (
       <>
         <Menu active="reservas" onNavigate={handleNavigate} />
-        <Reservas onBack={() => handleNavigate('catalog')} />
+        <Reservas onBack={() => handleNavigate('catalog')} onNavigate={handleNavigate} />
       </>
     )
   }
@@ -122,7 +122,12 @@ function Catalog() {
     return (
       <>
         <Menu active="catalog" onNavigate={handleNavigate} />
-        <div style={{ textAlign: 'center', padding: '40px' }}>Carregando acervo...</div>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
+          <div style={{ textAlign: 'center' }}>
+            <Sparkles size={40} color="#1e3a5f" style={{ marginBottom: '16px', animation: 'pulse 1.5s infinite' }} />
+            <p style={{ color: '#64748b' }}>Carregando acervo...</p>
+          </div>
+        </div>
       </>
     )
   }

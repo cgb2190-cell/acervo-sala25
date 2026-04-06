@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
-import { ArrowLeft, Lock, Plus, Trash2, Edit, Save, X, CalendarX, Tag, BookOpen, Gamepad2, Upload, Image as ImageIcon, LogOut, Search } from 'lucide-react'
+import { ArrowLeft, Lock, Plus, Trash2, Edit, Save, X, CalendarX, Tag, BookOpen, Gamepad2, Upload, Image as ImageIcon, LogOut, Search, SquarePen } from 'lucide-react'
 
 function Admin({ onBack }) {
   const [autenticado, setAutenticado] = useState(false)
@@ -30,17 +30,35 @@ function Admin({ onBack }) {
   const [temas, setTemas] = useState([])
   const [novoTema, setNovoTema] = useState('')
 
-  const SENHA_ADMIN = 'PBiasoli25!'
+  const SENHA_ADMIN = import.meta.env.VITE_ADMIN_PASSWORD
+  const [usuarioLogado, setUsuarioLogado] = useState('')
 
   useEffect(() => {
     const autenticadoSalvo = localStorage.getItem('admin_autenticado')
-    if (autenticadoSalvo === 'true') {
+    const nomeSalvo = localStorage.getItem('admin_usuario')
+    if (autenticadoSalvo === 'true' && nomeSalvo) {
       setAutenticado(true)
+      setUsuarioLogado(nomeSalvo)
       carregarAcervo()
       carregarDiasBloqueados()
       carregarTemas()
     }
   }, [])
+
+  async function registrarLog(acao, detalhes) {
+    try {
+      await supabase
+        .from('admin_logs')
+        .insert({
+          usuario: usuarioLogado,
+          acao: acao,
+          detalhes: detalhes,
+          data: new Date().toISOString()
+        })
+    } catch (error) {
+      console.error('Erro ao registrar log:', error)
+    }
+  }
 
   async function carregarAcervo() {
     setLoading(true)
@@ -106,19 +124,16 @@ function Admin({ onBack }) {
     const file = e.target.files[0]
     if (!file) return
     
-    // Validação de tipo
     if (!file.type.startsWith('image/')) {
       alert('Por favor, selecione um arquivo de imagem (jpg, png, etc)')
       return
     }
     
-    // Validação de tamanho (max 5MB para celular)
     if (file.size > 5 * 1024 * 1024) {
       alert('Arquivo muito grande. Máximo 5MB')
       return
     }
     
-    // Criar preview local (isso funciona no celular)
     const reader = new FileReader()
     reader.onload = (event) => {
       setFormData({ ...formData, capa_file: file, capa_preview: event.target.result })
@@ -160,6 +175,7 @@ function Admin({ onBack }) {
       if (error) {
         alert('Erro ao atualizar: ' + error.message)
       } else {
+        await registrarLog('ATUALIZAR_ITEM', `Item: ${formData.titulo}`)
         alert('Item atualizado com sucesso!')
         setEditando(null)
         carregarAcervo()
@@ -179,6 +195,7 @@ function Admin({ onBack }) {
       if (error) {
         alert('Erro ao adicionar: ' + error.message)
       } else {
+        await registrarLog('ADICIONAR_ITEM', `Item: ${formData.titulo}`)
         alert('Item adicionado com sucesso!')
         carregarAcervo()
         limparForm()
@@ -186,8 +203,8 @@ function Admin({ onBack }) {
     }
   }
 
-  async function excluirItem(id) {
-    if (confirm('Tem certeza que deseja excluir este item?')) {
+  async function excluirItem(id, titulo) {
+    if (confirm(`Tem certeza que deseja excluir "${titulo}"?`)) {
       const { error } = await supabase
         .from('acervo')
         .delete()
@@ -196,6 +213,7 @@ function Admin({ onBack }) {
       if (error) {
         alert('Erro ao excluir: ' + error.message)
       } else {
+        await registrarLog('EXCLUIR_ITEM', `Item: ${titulo}`)
         alert('Item excluído!')
         carregarAcervo()
       }
@@ -241,6 +259,7 @@ function Admin({ onBack }) {
     if (error) {
       alert('Erro: ' + error.message)
     } else {
+      await registrarLog('ADICIONAR_BLOQUEIO', `Data: ${novaData} - ${novoMotivo}`)
       alert('Dia bloqueado adicionado!')
       setNovaData('')
       setNovoMotivo('')
@@ -248,8 +267,8 @@ function Admin({ onBack }) {
     }
   }
 
-  async function removerDiaBloqueado(id) {
-    if (confirm('Remover este bloqueio?')) {
+  async function removerDiaBloqueado(id, data, motivo) {
+    if (confirm(`Remover bloqueio de ${data}?`)) {
       const { error } = await supabase
         .from('dias_bloqueados')
         .delete()
@@ -258,6 +277,7 @@ function Admin({ onBack }) {
       if (error) {
         alert('Erro: ' + error.message)
       } else {
+        await registrarLog('REMOVER_BLOQUEIO', `Data: ${data} - ${motivo}`)
         carregarDiasBloqueados()
       }
     }
@@ -276,6 +296,7 @@ function Admin({ onBack }) {
     if (error) {
       alert('Erro: ' + error.message)
     } else {
+      await registrarLog('ADICIONAR_TEMA', `Tema: ${novoTema}`)
       alert('Tema adicionado!')
       setNovoTema('')
       carregarTemas()
@@ -292,6 +313,7 @@ function Admin({ onBack }) {
       if (error) {
         alert('Erro: ' + error.message)
       } else {
+        await registrarLog('REMOVER_TEMA', `Tema: ${nome}`)
         carregarTemas()
       }
     }
@@ -300,9 +322,17 @@ function Admin({ onBack }) {
   function handleLogin(e) {
     e.preventDefault()
     if (senha === SENHA_ADMIN) {
+      const nome = prompt('Digite seu nome para identificação:')
+      if (!nome || nome.trim() === '') {
+        alert('Nome é obrigatório para acessar')
+        return
+      }
       setAutenticado(true)
+      setUsuarioLogado(nome.trim())
       localStorage.setItem('admin_autenticado', 'true')
+      localStorage.setItem('admin_usuario', nome.trim())
       setErroSenha('')
+      registrarLog('LOGIN', `Usuário ${nome} fez login`)
       carregarAcervo()
       carregarDiasBloqueados()
       carregarTemas()
@@ -312,8 +342,10 @@ function Admin({ onBack }) {
   }
 
   function handleLogout() {
+    registrarLog('LOGOUT', `Usuário ${usuarioLogado} fez logout`)
     setAutenticado(false)
     localStorage.removeItem('admin_autenticado')
+    localStorage.removeItem('admin_usuario')
     setSenha('')
   }
 
@@ -338,13 +370,19 @@ function Admin({ onBack }) {
         </button>
         <div style={{ backgroundColor: 'white', borderRadius: '16px', padding: '24px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
-            <Lock size={32} color="#1e3a5f" />
+            <SquarePen size={32} color="#1e3a5f" />
             <h2 style={{ margin: 0, color: '#1e3a5f' }}>Área Administrativa</h2>
           </div>
+          <p style={{ marginBottom: '16px', color: '#6b7280', fontSize: '14px' }}>
+            Aqui você pode:<br />
+            • Adicionar ou editar livros e jogos<br />
+            • Gerenciar dias bloqueados (feriados, greves)<br />
+            • Gerenciar as temáticas disponíveis
+          </p>
           <form onSubmit={handleLogin}>
             <input
               type="password"
-              placeholder="Digite a senha"
+              placeholder="Senha de acesso"
               value={senha}
               onChange={(e) => setSenha(e.target.value)}
               style={{
@@ -397,24 +435,27 @@ function Admin({ onBack }) {
         >
           <ArrowLeft size={18} /> Voltar
         </button>
-        <button
-          onClick={handleLogout}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            padding: '6px 12px',
-            backgroundColor: '#ef4444',
-            color: 'white',
-            border: 'none',
-            borderRadius: '8px',
-            cursor: 'pointer',
-            fontSize: '12px'
-          }}
-        >
-          <LogOut size={14} />
-          Sair
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <span style={{ fontSize: '12px', color: '#6b7280' }}>👤 {usuarioLogado}</span>
+          <button
+            onClick={handleLogout}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '6px 12px',
+              backgroundColor: '#ef4444',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              fontSize: '12px'
+            }}
+          >
+            <LogOut size={14} />
+            Sair
+          </button>
+        </div>
       </div>
 
       <h1 style={{ textAlign: 'center', color: '#1e3a5f', marginBottom: '20px' }}>Administração</h1>
@@ -436,32 +477,10 @@ function Admin({ onBack }) {
           <div style={{ backgroundColor: '#f3f4f6', padding: '16px', borderRadius: '12px', marginBottom: '20px' }}>
             <h3 style={{ margin: '0 0 12px 0' }}>{editando ? 'Editar Item' : 'Adicionar Novo Item'}</h3>
             <div style={{ marginBottom: '8px' }}>
-              <input
-                type="text"
-                placeholder="Título *"
-                value={formData.titulo}
-                onChange={(e) => setFormData({ ...formData, titulo: e.target.value })}
-                style={{ width: '100%', padding: '8px', marginBottom: '8px', border: '1px solid #ccc', borderRadius: '6px', boxSizing: 'border-box' }}
-              />
-              <input
-                type="text"
-                placeholder="Autores (separados por ;)"
-                value={formData.autores}
-                onChange={(e) => setFormData({ ...formData, autores: e.target.value })}
-                style={{ width: '100%', padding: '8px', marginBottom: '8px', border: '1px solid #ccc', borderRadius: '6px', boxSizing: 'border-box' }}
-              />
-              <input
-                type="text"
-                placeholder="Temáticas (separadas por ;)"
-                value={formData.tematicas}
-                onChange={(e) => setFormData({ ...formData, tematicas: e.target.value })}
-                style={{ width: '100%', padding: '8px', marginBottom: '8px', border: '1px solid #ccc', borderRadius: '6px', boxSizing: 'border-box' }}
-              />
-              <select
-                value={formData.tipo}
-                onChange={(e) => setFormData({ ...formData, tipo: e.target.value })}
-                style={{ width: '100%', padding: '8px', marginBottom: '8px', border: '1px solid #ccc', borderRadius: '6px' }}
-              >
+              <input type="text" placeholder="Título *" value={formData.titulo} onChange={(e) => setFormData({ ...formData, titulo: e.target.value })} style={{ width: '100%', padding: '8px', marginBottom: '8px', border: '1px solid #ccc', borderRadius: '6px', boxSizing: 'border-box' }} />
+              <input type="text" placeholder="Autores (separados por ;)" value={formData.autores} onChange={(e) => setFormData({ ...formData, autores: e.target.value })} style={{ width: '100%', padding: '8px', marginBottom: '8px', border: '1px solid #ccc', borderRadius: '6px', boxSizing: 'border-box' }} />
+              <input type="text" placeholder="Temáticas (separadas por ;)" value={formData.tematicas} onChange={(e) => setFormData({ ...formData, tematicas: e.target.value })} style={{ width: '100%', padding: '8px', marginBottom: '8px', border: '1px solid #ccc', borderRadius: '6px', boxSizing: 'border-box' }} />
+              <select value={formData.tipo} onChange={(e) => setFormData({ ...formData, tipo: e.target.value })} style={{ width: '100%', padding: '8px', marginBottom: '8px', border: '1px solid #ccc', borderRadius: '6px' }}>
                 <option value="livro_capa_dura">Livro Capa Dura</option>
                 <option value="livro_capa_mole">Livro Capa Mole</option>
                 <option value="jogo">Jogo</option>
@@ -476,11 +495,7 @@ function Admin({ onBack }) {
                   </label>
                   {formData.capa_file && <span style={{ fontSize: '11px', color: '#10b981' }}>Arquivo selecionado: {formData.capa_file.name}</span>}
                 </div>
-                {formData.capa_preview && (
-                  <div style={{ marginTop: '8px' }}>
-                    <img src={formData.capa_preview} alt="Preview" style={{ width: '60px', height: '80px', objectFit: 'cover', borderRadius: '8px' }} />
-                  </div>
-                )}
+                {formData.capa_preview && <div style={{ marginTop: '8px' }}><img src={formData.capa_preview} alt="Preview" style={{ width: '60px', height: '80px', objectFit: 'cover', borderRadius: '8px' }} /></div>}
                 {uploading && <div style={{ fontSize: '11px', color: '#2563eb', marginTop: '4px' }}>Enviando imagem...</div>}
               </div>
             </div>
@@ -496,32 +511,15 @@ function Admin({ onBack }) {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
               <h3 style={{ margin: 0 }}>Itens do Acervo ({itens.length})</h3>
               <div style={{ position: 'relative' }}>
-                <input
-                  type="text"
-                  placeholder="Buscar item..."
-                  value={buscaAcervo}
-                  onChange={(e) => setBuscaAcervo(e.target.value)}
-                  style={{ padding: '6px 12px', paddingLeft: '28px', border: '1px solid #ccc', borderRadius: '20px', fontSize: '12px', width: '180px' }}
-                />
+                <input type="text" placeholder="Buscar item..." value={buscaAcervo} onChange={(e) => setBuscaAcervo(e.target.value)} style={{ padding: '6px 12px', paddingLeft: '28px', border: '1px solid #ccc', borderRadius: '20px', fontSize: '12px', width: '180px' }} />
                 <Search size={14} style={{ position: 'absolute', left: '8px', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af' }} />
-                {buscaAcervo && (
-                  <button
-                    onClick={() => setBuscaAcervo('')}
-                    style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '12px', color: '#9ca3af' }}
-                  >
-                    ✕
-                  </button>
-                )}
+                {buscaAcervo && <button onClick={() => setBuscaAcervo('')} style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '12px', color: '#9ca3af' }}>✕</button>}
               </div>
             </div>
             {loading && <div>Carregando...</div>}
             <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
               {itens
-                .filter(item => 
-                  buscaAcervo === '' || 
-                  item.titulo.toLowerCase().includes(buscaAcervo.toLowerCase()) ||
-                  (item.autores && item.autores.toLowerCase().includes(buscaAcervo.toLowerCase()))
-                )
+                .filter(item => buscaAcervo === '' || item.titulo.toLowerCase().includes(buscaAcervo.toLowerCase()) || (item.autores && item.autores.toLowerCase().includes(buscaAcervo.toLowerCase())))
                 .map(item => (
                   <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px', borderBottom: '1px solid #e5e7eb' }}>
                     <div>
@@ -531,13 +529,11 @@ function Admin({ onBack }) {
                     </div>
                     <div>
                       <button onClick={() => editarItem(item)} style={{ background: 'none', border: 'none', cursor: 'pointer', marginRight: '8px', color: '#2563eb' }}><Edit size={18} /></button>
-                      <button onClick={() => excluirItem(item.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#dc2626' }}><Trash2 size={18} /></button>
+                      <button onClick={() => excluirItem(item.id, item.titulo)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#dc2626' }}><Trash2 size={18} /></button>
                     </div>
                   </div>
                 ))}
-              {buscaAcervo && itens.filter(i => i.titulo.toLowerCase().includes(buscaAcervo.toLowerCase())).length === 0 && (
-                <div style={{ textAlign: 'center', padding: '20px', color: '#9ca3af' }}>Nenhum item encontrado para "{buscaAcervo}"</div>
-              )}
+              {buscaAcervo && itens.filter(i => i.titulo.toLowerCase().includes(buscaAcervo.toLowerCase())).length === 0 && <div style={{ textAlign: 'center', padding: '20px', color: '#9ca3af' }}>Nenhum item encontrado para "{buscaAcervo}"</div>}
             </div>
           </div>
         </div>
@@ -549,9 +545,7 @@ function Admin({ onBack }) {
             <h3 style={{ margin: '0 0 12px 0' }}>Adicionar Bloqueio</h3>
             <input type="date" value={novaData} onChange={(e) => setNovaData(e.target.value)} style={{ width: '100%', padding: '8px', marginBottom: '8px', border: '1px solid #ccc', borderRadius: '6px', boxSizing: 'border-box' }} />
             <input type="text" placeholder="Motivo (ex: Feriado, Greve, Recesso)" value={novoMotivo} onChange={(e) => setNovoMotivo(e.target.value)} style={{ width: '100%', padding: '8px', marginBottom: '8px', border: '1px solid #ccc', borderRadius: '6px', boxSizing: 'border-box' }} />
-            <button onClick={adicionarDiaBloqueado} style={{ padding: '8px 16px', backgroundColor: '#10b981', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Plus size={16} /> Adicionar
-            </button>
+            <button onClick={adicionarDiaBloqueado} style={{ padding: '8px 16px', backgroundColor: '#10b981', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}><Plus size={16} /> Adicionar</button>
           </div>
           <div>
             <h3>Dias Bloqueados ({diasBloqueados.length})</h3>
@@ -562,7 +556,7 @@ function Admin({ onBack }) {
                     <div>{new Date(dia.data).toLocaleDateString('pt-BR')}</div>
                     <div style={{ fontSize: '11px', color: '#6b7280' }}>{dia.motivo}</div>
                   </div>
-                  <button onClick={() => removerDiaBloqueado(dia.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#dc2626' }}><Trash2 size={18} /></button>
+                  <button onClick={() => removerDiaBloqueado(dia.id, new Date(dia.data).toLocaleDateString('pt-BR'), dia.motivo)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#dc2626' }}><Trash2 size={18} /></button>
                 </div>
               ))}
             </div>
@@ -575,9 +569,7 @@ function Admin({ onBack }) {
           <div style={{ backgroundColor: '#f3f4f6', padding: '16px', borderRadius: '12px', marginBottom: '20px' }}>
             <h3 style={{ margin: '0 0 12px 0' }}>Adicionar Tema</h3>
             <input type="text" placeholder="Nome do tema" value={novoTema} onChange={(e) => setNovoTema(e.target.value)} style={{ width: '100%', padding: '8px', marginBottom: '8px', border: '1px solid #ccc', borderRadius: '6px', boxSizing: 'border-box' }} />
-            <button onClick={adicionarTema} style={{ padding: '8px 16px', backgroundColor: '#10b981', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Plus size={16} /> Adicionar Tema
-            </button>
+            <button onClick={adicionarTema} style={{ padding: '8px 16px', backgroundColor: '#10b981', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}><Plus size={16} /> Adicionar Tema</button>
           </div>
           <div>
             <h3>Temas Disponíveis ({temas.length})</h3>

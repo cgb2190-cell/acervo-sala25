@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
-import { ArrowLeft, CheckCircle, BookOpen, Gamepad2, Calendar, User } from 'lucide-react'
+import { ArrowLeft, CheckCircle, BookOpen, Gamepad2, Calendar, User, BookHeart } from 'lucide-react'
 
 function Devolucoes({ onBack }) {
   const [reservasAtivas, setReservasAtivas] = useState([])
@@ -8,12 +8,12 @@ function Devolucoes({ onBack }) {
   const [processando, setProcessando] = useState(false)
   
   // Estados do formulário
-  const [livroSelecionado, setLivroSelecionado] = useState('')
+  const [recursoSelecionado, setRecursoSelecionado] = useState('')
   const [slotSelecionado, setSlotSelecionado] = useState('')
   const [nomeSelecionado, setNomeSelecionado] = useState('')
   const [resumo, setResumo] = useState(null)
   
-  const [livrosUnicos, setLivrosUnicos] = useState([])
+  const [recursosUnicos, setRecursosUnicos] = useState([])
   const [slotsDisponiveis, setSlotsDisponiveis] = useState([])
   const [pessoasDisponiveis, setPessoasDisponiveis] = useState([])
 
@@ -34,11 +34,11 @@ function Devolucoes({ onBack }) {
 
     if (!error && data) {
       setReservasAtivas(data)
-      const livros = [...new Set(data.map(r => r.acervo?.titulo).filter(Boolean))].sort()
-      setLivrosUnicos(livros)
+      const recursos = [...new Set(data.map(r => r.acervo?.titulo).filter(Boolean))].sort()
+      setRecursosUnicos(recursos)
     } else {
       setReservasAtivas([])
-      setLivrosUnicos([])
+      setRecursosUnicos([])
     }
     setLoading(false)
   }
@@ -58,17 +58,17 @@ function Devolucoes({ onBack }) {
     return <Gamepad2 size={size} color="#16a34a" />
   }
 
-  function handleLivroChange(livro) {
-    setLivroSelecionado(livro)
+  function handleRecursoChange(recurso) {
+    setRecursoSelecionado(recurso)
     setSlotSelecionado('')
     setNomeSelecionado('')
     setResumo(null)
     
-    const reservasDoLivro = reservasAtivas.filter(r => r.acervo?.titulo === livro)
+    const reservasDoRecurso = reservasAtivas.filter(r => r.acervo?.titulo === recurso)
     const slots = []
     const seen = new Set()
     
-    reservasDoLivro.forEach(r => {
+    reservasDoRecurso.forEach(r => {
       const key = `${r.data_uso}|${r.horario}`
       if (!seen.has(key)) {
         seen.add(key)
@@ -90,7 +90,7 @@ function Devolucoes({ onBack }) {
     
     const [data, horario] = slotKey.split('|')
     const pessoas = reservasAtivas.filter(r => 
-      r.acervo?.titulo === livroSelecionado && 
+      r.acervo?.titulo === recursoSelecionado && 
       r.data_uso === data && 
       r.horario === horario
     )
@@ -127,7 +127,7 @@ function Devolucoes({ onBack }) {
       alert(data.message)
     } else {
       alert('✅ Devolução registrada com sucesso!')
-      setLivroSelecionado('')
+      setRecursoSelecionado('')
       setSlotSelecionado('')
       setNomeSelecionado('')
       setResumo(null)
@@ -172,15 +172,15 @@ function Devolucoes({ onBack }) {
         </div>
       ) : (
         <div>
-          {/* 1. Livro / Recurso */}
+          {/* Recurso terapêutico */}
           <div style={{ marginBottom: 16 }}>
             <label style={{ display: 'block', fontWeight: 'bold', marginBottom: 6, fontSize: 13, color: '#374151' }}>
-              <BookOpen size={14} style={{ display: 'inline', marginRight: '6px' }} />
-              1. Livro / Recurso
+              <BookHeart size={14} style={{ display: 'inline', marginRight: '6px' }} />
+              Recurso terapêutico
             </label>
             <select
-              value={livroSelecionado}
-              onChange={(e) => handleLivroChange(e.target.value)}
+              value={recursoSelecionado}
+              onChange={(e) => handleRecursoChange(e.target.value)}
               style={{
                 width: '100%',
                 padding: '10px',
@@ -190,19 +190,19 @@ function Devolucoes({ onBack }) {
                 backgroundColor: 'white'
               }}
             >
-              <option value="">Selecione o livro...</option>
-              {livrosUnicos.map(livro => (
-                <option key={livro} value={livro}>{livro}</option>
+              <option value="">Selecione o recurso...</option>
+              {recursosUnicos.map(recurso => (
+                <option key={recurso} value={recurso}>{recurso}</option>
               ))}
             </select>
           </div>
 
-          {/* 2. Data e horário */}
-          {livroSelecionado && slotsDisponiveis.length > 0 && (
+          {/* Data e horário */}
+          {recursoSelecionado && slotsDisponiveis.length > 0 && (
             <div style={{ marginBottom: 16 }}>
               <label style={{ display: 'block', fontWeight: 'bold', marginBottom: 6, fontSize: 13, color: '#374151' }}>
                 <Calendar size={14} style={{ display: 'inline', marginRight: '6px' }} />
-                2. Data e horário
+                Data e horário
               </label>
               <select
                 value={slotSelecionado}
@@ -224,12 +224,12 @@ function Devolucoes({ onBack }) {
             </div>
           )}
 
-          {/* 3. Reservado por */}
+          {/* Reservado por */}
           {slotSelecionado && pessoasDisponiveis.length > 0 && (
             <div style={{ marginBottom: 16 }}>
               <label style={{ display: 'block', fontWeight: 'bold', marginBottom: 6, fontSize: 13, color: '#374151' }}>
                 <User size={14} style={{ display: 'inline', marginRight: '6px' }} />
-                3. Reservado por
+                Reservado por
               </label>
               <select
                 value={nomeSelecionado}
