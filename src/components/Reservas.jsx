@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { ArrowLeft, CalendarX, BookOpen, Gamepad2, X, CalendarPlus, Clipboard, AlertCircle } from 'lucide-react'
+import { toast } from 'sonner'
+import Modal from './Modal'
 
 function Reservas({ onBack, onNavigate }) {
   const [semanasFuturas, setSemanasFuturas] = useState([])
@@ -23,6 +25,8 @@ function Reservas({ onBack, onNavigate }) {
   const [nomeUsuario, setNomeUsuario] = useState('')
   const [reservando, setReservando] = useState(false)
   const [conflito, setConflito] = useState(null)
+  
+  const [confirmModalOpen, setConfirmModalOpen] = useState(false)
 
   const horarios = ['08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00','19:00']
   const diasNomes = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta']
@@ -163,13 +167,13 @@ function Reservas({ onBack, onNavigate }) {
     return '#fff2cc'
   }
 
-  function abrirModal(dia, horario, nomeDia) {
+  function abrirModalReserva(dia, horario, nomeDia) {
     if (tipoSemana === 'passada') {
-      alert('Esta semana já passou. Não é possível fazer novas reservas.')
+      toast.info('Esta semana já passou. Não é possível fazer novas reservas.')
       return
     }
     if (isDiaBloqueado(dia)) {
-      alert(`Este dia está bloqueado: ${getMotivoBloqueio(dia)}`)
+      toast.error(`Este dia está bloqueado: ${getMotivoBloqueio(dia)}`)
       return
     }
     setDataSelecionada(dia)
@@ -180,12 +184,22 @@ function Reservas({ onBack, onNavigate }) {
     setModalAberto(true)
   }
 
-  async function confirmarReserva() {
-    if (!nomeUsuario.trim()) { alert('Digite seu nome'); return }
-    if (!itemSelecionado) { alert('Selecione um item'); return }
-    if (!confirm(`Confirmar reserva de "${itemSelecionado.titulo}" para ${dataSelecionada.split('-').reverse().join('/')} às ${horarioSelecionado}?`)) return
+  function handleConfirmarReserva() {
+    if (!nomeUsuario.trim()) {
+      toast.info('Digite seu nome')
+      return
+    }
+    if (!itemSelecionado) {
+      toast.info('Selecione um item')
+      return
+    }
+    setConfirmModalOpen(true)
+  }
 
+  async function confirmarReserva() {
+    setConfirmModalOpen(false)
     setReservando(true)
+
     const { data, error } = await supabase.rpc('fazer_reserva', {
       p_item_id: itemSelecionado.id,
       p_usuario_nome: nomeUsuario.trim(),
@@ -194,15 +208,16 @@ function Reservas({ onBack, onNavigate }) {
     })
 
     if (error) {
-      alert('Erro: ' + error.message)
+      toast.error('Erro: ' + error.message)
     } else if (data && !data.success) {
       setConflito(data.message)
+      toast.error(data.message)
     } else {
       localStorage.setItem('nome_usuario', nomeUsuario.trim())
       setModalAberto(false)
       await carregarReservas(semanasFuturas[0])
       await carregarPendencias()
-      alert('Reserva confirmada!')
+      toast.success('Reserva confirmada!')
     }
     setReservando(false)
   }
@@ -218,26 +233,12 @@ function Reservas({ onBack, onNavigate }) {
 
   return (
     <div style={{ maxWidth: '100%', margin: '0 auto', padding: 16 }}>
-      <button
-        onClick={onBack}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          background: 'none',
-          border: 'none',
-          cursor: 'pointer',
-          color: '#1e3a5f',
-          marginBottom: '20px',
-          fontSize: '14px'
-        }}
-      >
+      <button onClick={onBack} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'none', border: 'none', cursor: 'pointer', color: '#1e3a5f', marginBottom: '20px', fontSize: '14px' }}>
         <ArrowLeft size={18} /> Voltar
       </button>
 
       <h1 style={{ textAlign: 'center' }}>Reservas</h1>
 
-      {/* Seletor de semanas futuras */}
       {semanasFuturas.length > 0 && (
         <div style={{ marginBottom: '16px' }}>
           <div style={{ fontSize: '12px', color: '#1e3a5f', marginBottom: '8px', fontWeight: 'bold' }}>Próximas semanas:</div>
@@ -258,7 +259,6 @@ function Reservas({ onBack, onNavigate }) {
         </div>
       )}
 
-      {/* Instrução com ícone no meio da frase - alinhado à esquerda */}
       {podeReservar && (
         <div style={{
           backgroundColor: '#f0fdf4',
@@ -268,18 +268,17 @@ function Reservas({ onBack, onNavigate }) {
           marginBottom: '16px',
           display: 'flex',
           alignItems: 'center',
-          gap: '4px',
+          gap: '8px',
           fontSize: '13px',
           color: '#166534',
           flexWrap: 'wrap'
         }}>
-          <span>Clique em</span>
+          <span>Clique no ícone</span>
           <CalendarPlus size={16} />
           <span>para fazer uma nova reserva</span>
         </div>
       )}
 
-      {/* Grade */}
       {diasDaSemana.length > 0 && (
         <div style={{ overflowX: 'auto', marginBottom: '24px' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #ccc' }}>
@@ -304,7 +303,7 @@ function Reservas({ onBack, onNavigate }) {
                     const podeClicar = podeReservar && !bloqueado
                     return (
                       <td key={idx} style={{ padding: '4px', border: '1px solid #ccc', textAlign: 'center', backgroundColor: cor, cursor: podeClicar ? 'pointer' : 'default', verticalAlign: 'top' }}
-                          onClick={() => podeClicar && abrirModal(dia, horario, diasNomes[idx])}>
+                        onClick={() => podeClicar && abrirModalReserva(dia, horario, diasNomes[idx])}>
                         {bloqueado ? (
                           <div style={{ fontSize: 10, color: '#9ca3af' }}>
                             <CalendarX size={12} />
@@ -339,7 +338,6 @@ function Reservas({ onBack, onNavigate }) {
         </div>
       )}
 
-      {/* Alerta de pendências com AlertCircle em negrito */}
       {pendencias > 0 && (
         <div style={{
           backgroundColor: '#fee2e2',
@@ -359,24 +357,10 @@ function Reservas({ onBack, onNavigate }) {
               Atenção: {pendencias} reserva(s) de semanas passadas ainda não foram devolvidas!
             </span>
           </div>
-          <button
-            onClick={() => onNavigate && onNavigate('devolucoes')}
-            style={{
-              backgroundColor: '#dc2626',
-              color: 'white',
-              border: 'none',
-              borderRadius: '6px',
-              padding: '6px 12px',
-              cursor: 'pointer',
-              fontSize: '12px'
-            }}
-          >
-            Ver devoluções
-          </button>
+          <button onClick={() => onNavigate && onNavigate('devolucoes')} style={{ backgroundColor: '#dc2626', color: 'white', border: 'none', borderRadius: '6px', padding: '6px 12px', cursor: 'pointer', fontSize: '12px' }}>Ver devoluções</button>
         </div>
       )}
 
-      {/* Semanas anteriores */}
       {semanasPassadas.length > 0 && (
         <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #e5e7eb' }}>
           <div style={{ fontSize: '12px', color: '#9ca3af', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -406,18 +390,12 @@ function Reservas({ onBack, onNavigate }) {
           <div style={{ backgroundColor: 'white', borderRadius: 16, padding: 24, width: '100%', maxWidth: 400 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
               <h3 style={{ margin: 0 }}>Nova Reserva</h3>
-              <button onClick={() => setModalAberto(false)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
-                <X size={22} />
-              </button>
+              <button onClick={() => setModalAberto(false)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X size={22} /></button>
             </div>
             <div style={{ backgroundColor: '#f3f4f6', borderRadius: 8, padding: '10px 14px', marginBottom: 16, fontSize: 13 }}>
               {diaSelecionado}, {dataSelecionada?.split('-').reverse().join('/')} — {horarioSelecionado}
             </div>
-            {conflito && (
-              <div style={{ backgroundColor: '#fee2e2', padding: '10px 14px', marginBottom: 16, fontSize: 13, color: '#b91c1c', borderRadius: 8 }}>
-                {conflito}
-              </div>
-            )}
+            {conflito && <div style={{ backgroundColor: '#fee2e2', padding: '10px 14px', marginBottom: 16, fontSize: 13, color: '#b91c1c', borderRadius: 8 }}>{conflito}</div>}
             <div style={{ marginBottom: 14 }}>
               <label style={{ display: 'block', fontWeight: 'bold', marginBottom: 6 }}>Seu nome</label>
               <input type="text" value={nomeUsuario} onChange={e => setNomeUsuario(e.target.value)} placeholder="Nome completo" style={{ width: '100%', padding: 10, border: '1px solid #ccc', borderRadius: 8 }} />
@@ -427,18 +405,26 @@ function Reservas({ onBack, onNavigate }) {
               <select value={itemSelecionado?.id || ''} onChange={e => setItemSelecionado(itens.find(i => i.id === e.target.value) || null)} style={{ width: '100%', padding: 10, border: '1px solid #ccc', borderRadius: 8 }}>
                 <option value="">-- Selecione um item --</option>
                 {itens.map(item => (
-                  <option key={item.id} value={item.id}>
-                    {item.titulo} ({item.tipo?.includes('livro') ? 'Livro' : 'Jogo'})
-                  </option>
+                  <option key={item.id} value={item.id}>{item.titulo} ({item.tipo?.includes('livro') ? 'Livro' : 'Jogo'})</option>
                 ))}
               </select>
             </div>
-            <button onClick={confirmarReserva} disabled={reservando || !itemSelecionado || !nomeUsuario.trim()} style={{ width: '100%', padding: 12, backgroundColor: reservando || !itemSelecionado || !nomeUsuario.trim() ? '#9ca3af' : '#1e3a5f', color: 'white', border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 'bold' }}>
+            <button onClick={handleConfirmarReserva} disabled={reservando || !itemSelecionado || !nomeUsuario.trim()} style={{ width: '100%', padding: 12, backgroundColor: reservando || !itemSelecionado || !nomeUsuario.trim() ? '#9ca3af' : '#1e3a5f', color: 'white', border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 'bold' }}>
               {reservando ? 'Reservando...' : 'Confirmar Reserva'}
             </button>
           </div>
         </div>
       )}
+
+      <Modal
+        isOpen={confirmModalOpen}
+        onClose={() => setConfirmModalOpen(false)}
+        onConfirm={confirmarReserva}
+        title="Confirmar Reserva"
+        message={`Confirmar reserva de "${itemSelecionado?.titulo}" para ${dataSelecionada?.split('-').reverse().join('/')} às ${horarioSelecionado}?`}
+        confirmText="Sim, reservar"
+        cancelText="Cancelar"
+      />
     </div>
   )
 }

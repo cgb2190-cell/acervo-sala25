@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { ArrowLeft, CheckCircle, BookOpen, Gamepad2, Calendar, User, BookHeart } from 'lucide-react'
+import { toast } from 'sonner'
+import Modal from './Modal'
 
 function Devolucoes({ onBack }) {
   const [reservasAtivas, setReservasAtivas] = useState([])
@@ -12,6 +14,7 @@ function Devolucoes({ onBack }) {
   const [slotSelecionado, setSlotSelecionado] = useState('')
   const [nomeSelecionado, setNomeSelecionado] = useState('')
   const [resumo, setResumo] = useState(null)
+  const [confirmModalOpen, setConfirmModalOpen] = useState(false)
   
   const [recursosUnicos, setRecursosUnicos] = useState([])
   const [slotsDisponiveis, setSlotsDisponiveis] = useState([])
@@ -110,11 +113,13 @@ function Devolucoes({ onBack }) {
     })
   }
 
-  async function registrarDevolucao() {
+  function handleConfirmarDevolucao() {
     if (!resumo) return
-    
-    if (!confirm(`Confirmar devolução de "${resumo.livro}" para ${resumo.nome}?`)) return
-    
+    setConfirmModalOpen(true)
+  }
+
+  async function registrarDevolucao() {
+    setConfirmModalOpen(false)
     setProcessando(true)
     
     const { data, error } = await supabase.rpc('registrar_devolucao', {
@@ -122,11 +127,11 @@ function Devolucoes({ onBack }) {
     })
 
     if (error) {
-      alert('Erro: ' + error.message)
+      toast.error('Erro: ' + error.message)
     } else if (data && !data.success) {
-      alert(data.message)
+      toast.error(data.message)
     } else {
-      alert('✅ Devolução registrada com sucesso!')
+      toast.success('Devolução registrada com sucesso!')
       setRecursoSelecionado('')
       setSlotSelecionado('')
       setNomeSelecionado('')
@@ -292,7 +297,7 @@ function Devolucoes({ onBack }) {
           {/* Botão registrar */}
           {resumo && (
             <button
-              onClick={registrarDevolucao}
+              onClick={handleConfirmarDevolucao}
               disabled={processando}
               style={{
                 width: '100%',
@@ -317,6 +322,16 @@ function Devolucoes({ onBack }) {
           )}
         </div>
       )}
+
+      <Modal
+        isOpen={confirmModalOpen}
+        onClose={() => setConfirmModalOpen(false)}
+        onConfirm={registrarDevolucao}
+        title="Confirmar Devolução"
+        message={`Confirmar devolução de "${resumo?.livro}" para ${resumo?.nome}?`}
+        confirmText="Sim, devolver"
+        cancelText="Cancelar"
+      />
     </div>
   )
 }

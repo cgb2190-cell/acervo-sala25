@@ -1,10 +1,12 @@
 import Catalog from './components/Catalog'
+import { Toaster } from 'sonner'
 
 function App() {
   return (
-    <div>
+    <>
+      <Toaster position="top-center" richColors />
       <Catalog />
-    </div>
+    </>
   )
 }
 

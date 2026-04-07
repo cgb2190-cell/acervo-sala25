@@ -1,13 +1,26 @@
 import React, { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
-import { ArrowLeft, Lock, Plus, Trash2, Edit, Save, X, CalendarX, Tag, BookOpen, Gamepad2, Upload, Image as ImageIcon, LogOut, Search, SquarePen } from 'lucide-react'
+import { ArrowLeft, Lock, Plus, Trash2, Edit, Save, X, CalendarX, Tag, BookOpen, Gamepad2, Upload, Image as ImageIcon, LogOut, Search, SquarePen, Eye, EyeOff } from 'lucide-react'
+import { toast } from 'sonner'
+import Modal from './Modal'
 
 function Admin({ onBack }) {
   const [autenticado, setAutenticado] = useState(false)
-  const [senha, setSenha] = useState('')
-  const [erroSenha, setErroSenha] = useState('')
   const [aba, setAba] = useState('acervo')
   const [buscaAcervo, setBuscaAcervo] = useState('')
+  
+  // Estados do login
+  const [senhaTemp, setSenhaTemp] = useState('')
+  const [mostrarSenha, setMostrarSenha] = useState(false)
+  const [erroSenha, setErroSenha] = useState('')
+  
+  // Modal de login (para nome)
+  const [loginModalOpen, setLoginModalOpen] = useState(false)
+  const [nomeLogin, setNomeLogin] = useState('')
+  
+  // Modal de confirmação para exclusão
+  const [confirmModalOpen, setConfirmModalOpen] = useState(false)
+  const [itemParaExcluir, setItemParaExcluir] = useState(null)
   
   const [itens, setItens] = useState([])
   const [loading, setLoading] = useState(false)
@@ -75,7 +88,18 @@ function Admin({ onBack }) {
       .from('dias_bloqueados')
       .select('*')
       .order('data')
-    if (!error && data) setDiasBloqueados(data)
+    if (!error && data) {
+      const dadosCorrigidos = data.map(d => {
+        const dataStr = d.data.split('T')[0]
+        const [ano, mes, dia] = dataStr.split('-')
+        return {
+          ...d,
+          data_exibicao: `${dia}/${mes}/${ano}`,
+          data_raw: dataStr
+        }
+      })
+      setDiasBloqueados(dadosCorrigidos)
+    }
   }
 
   async function carregarTemas() {
@@ -111,7 +135,7 @@ function Admin({ onBack }) {
     
     if (error) {
       console.error('Erro upload:', error)
-      alert('Erro ao fazer upload da imagem: ' + error.message)
+      toast.error('Erro ao fazer upload da imagem: ' + error.message)
       return null
     }
     
@@ -125,12 +149,12 @@ function Admin({ onBack }) {
     if (!file) return
     
     if (!file.type.startsWith('image/')) {
-      alert('Por favor, selecione um arquivo de imagem (jpg, png, etc)')
+      toast.error('Por favor, selecione um arquivo de imagem (jpg, png, etc)')
       return
     }
     
     if (file.size > 5 * 1024 * 1024) {
-      alert('Arquivo muito grande. Máximo 5MB')
+      toast.error('Arquivo muito grande. Máximo 5MB')
       return
     }
     
@@ -143,7 +167,7 @@ function Admin({ onBack }) {
 
   async function salvarItem() {
     if (!formData.titulo.trim()) {
-      alert('Título é obrigatório')
+      toast.error('Título é obrigatório')
       return
     }
 
@@ -173,10 +197,10 @@ function Admin({ onBack }) {
         .eq('id', editando)
       
       if (error) {
-        alert('Erro ao atualizar: ' + error.message)
+        toast.error('Erro ao atualizar: ' + error.message)
       } else {
         await registrarLog('ATUALIZAR_ITEM', `Item: ${formData.titulo}`)
-        alert('Item atualizado com sucesso!')
+        toast.success('Item atualizado com sucesso!')
         setEditando(null)
         carregarAcervo()
         limparForm()
@@ -193,31 +217,38 @@ function Admin({ onBack }) {
         })
       
       if (error) {
-        alert('Erro ao adicionar: ' + error.message)
+        toast.error('Erro ao adicionar: ' + error.message)
       } else {
         await registrarLog('ADICIONAR_ITEM', `Item: ${formData.titulo}`)
-        alert('Item adicionado com sucesso!')
+        toast.success('Item adicionado com sucesso!')
         carregarAcervo()
         limparForm()
       }
     }
   }
 
-  async function excluirItem(id, titulo) {
-    if (confirm(`Tem certeza que deseja excluir "${titulo}"?`)) {
-      const { error } = await supabase
-        .from('acervo')
-        .delete()
-        .eq('id', id)
-      
-      if (error) {
-        alert('Erro ao excluir: ' + error.message)
-      } else {
-        await registrarLog('EXCLUIR_ITEM', `Item: ${titulo}`)
-        alert('Item excluído!')
-        carregarAcervo()
-      }
+  function confirmarExclusao(item) {
+    setItemParaExcluir(item)
+    setConfirmModalOpen(true)
+  }
+
+  async function excluirItem() {
+    if (!itemParaExcluir) return
+    
+    const { error } = await supabase
+      .from('acervo')
+      .delete()
+      .eq('id', itemParaExcluir.id)
+    
+    if (error) {
+      toast.error('Erro ao excluir: ' + error.message)
+    } else {
+      await registrarLog('EXCLUIR_ITEM', `Item: ${itemParaExcluir.titulo}`)
+      toast.success('Item excluído!')
+      carregarAcervo()
     }
+    setConfirmModalOpen(false)
+    setItemParaExcluir(null)
   }
 
   function editarItem(item) {
@@ -248,19 +279,22 @@ function Admin({ onBack }) {
 
   async function adicionarDiaBloqueado() {
     if (!novaData) {
-      alert('Selecione uma data')
+      toast.error('Selecione uma data')
       return
     }
 
+    const dataUTC = new Date(novaData)
+    const dataFormatada = dataUTC.toISOString().split('T')[0]
+
     const { error } = await supabase
       .from('dias_bloqueados')
-      .insert({ data: novaData, motivo: novoMotivo || 'Bloqueio manual' })
+      .insert({ data: dataFormatada, motivo: novoMotivo || 'Bloqueio manual' })
     
     if (error) {
-      alert('Erro: ' + error.message)
+      toast.error('Erro: ' + error.message)
     } else {
       await registrarLog('ADICIONAR_BLOQUEIO', `Data: ${novaData} - ${novoMotivo}`)
-      alert('Dia bloqueado adicionado!')
+      toast.success('Dia bloqueado adicionado!')
       setNovaData('')
       setNovoMotivo('')
       carregarDiasBloqueados()
@@ -268,16 +302,17 @@ function Admin({ onBack }) {
   }
 
   async function removerDiaBloqueado(id, data, motivo) {
-    if (confirm(`Remover bloqueio de ${data}?`)) {
+    if (window.confirm(`Remover bloqueio de ${data}?`)) {
       const { error } = await supabase
         .from('dias_bloqueados')
         .delete()
         .eq('id', id)
       
       if (error) {
-        alert('Erro: ' + error.message)
+        toast.error('Erro: ' + error.message)
       } else {
         await registrarLog('REMOVER_BLOQUEIO', `Data: ${data} - ${motivo}`)
+        toast.success('Bloqueio removido!')
         carregarDiasBloqueados()
       }
     }
@@ -285,7 +320,7 @@ function Admin({ onBack }) {
 
   async function adicionarTema() {
     if (!novoTema.trim()) {
-      alert('Digite um tema')
+      toast.error('Digite um tema')
       return
     }
 
@@ -294,51 +329,59 @@ function Admin({ onBack }) {
       .insert({ nome: novoTema.trim() })
     
     if (error) {
-      alert('Erro: ' + error.message)
+      toast.error('Erro: ' + error.message)
     } else {
       await registrarLog('ADICIONAR_TEMA', `Tema: ${novoTema}`)
-      alert('Tema adicionado!')
+      toast.success('Tema adicionado!')
       setNovoTema('')
       carregarTemas()
     }
   }
 
   async function removerTema(id, nome) {
-    if (confirm(`Remover o tema "${nome}"?`)) {
+    if (window.confirm(`Remover o tema "${nome}"?`)) {
       const { error } = await supabase
         .from('temas')
         .delete()
         .eq('id', id)
       
       if (error) {
-        alert('Erro: ' + error.message)
+        toast.error('Erro: ' + error.message)
       } else {
         await registrarLog('REMOVER_TEMA', `Tema: ${nome}`)
+        toast.success('Tema removido!')
         carregarTemas()
       }
     }
   }
 
-  function handleLogin(e) {
-    e.preventDefault()
-    if (senha === SENHA_ADMIN) {
-      const nome = prompt('Digite seu nome para identificação:')
-      if (!nome || nome.trim() === '') {
-        alert('Nome é obrigatório para acessar')
-        return
-      }
-      setAutenticado(true)
-      setUsuarioLogado(nome.trim())
-      localStorage.setItem('admin_autenticado', 'true')
-      localStorage.setItem('admin_usuario', nome.trim())
+  // Funções de login
+  function handleVerificarSenha() {
+    if (senhaTemp === SENHA_ADMIN) {
       setErroSenha('')
-      registrarLog('LOGIN', `Usuário ${nome} fez login`)
-      carregarAcervo()
-      carregarDiasBloqueados()
-      carregarTemas()
+      setLoginModalOpen(true)
     } else {
       setErroSenha('Senha incorreta')
     }
+  }
+
+  function handleConfirmarNome() {
+    if (!nomeLogin.trim()) {
+      toast.error('Nome é obrigatório')
+      return
+    }
+    setLoginModalOpen(false)
+    setAutenticado(true)
+    setUsuarioLogado(nomeLogin.trim())
+    localStorage.setItem('admin_autenticado', 'true')
+    localStorage.setItem('admin_usuario', nomeLogin.trim())
+    registrarLog('LOGIN', `Usuário ${nomeLogin} fez login`)
+    carregarAcervo()
+    carregarDiasBloqueados()
+    carregarTemas()
+    toast.success(`Bem-vindo(a), ${nomeLogin}!`)
+    setSenhaTemp('')
+    setNomeLogin('')
   }
 
   function handleLogout() {
@@ -346,7 +389,9 @@ function Admin({ onBack }) {
     setAutenticado(false)
     localStorage.removeItem('admin_autenticado')
     localStorage.removeItem('admin_usuario')
-    setSenha('')
+    setSenhaTemp('')
+    setNomeLogin('')
+    toast.info('Você saiu da área administrativa')
   }
 
   if (!autenticado) {
@@ -379,15 +424,17 @@ function Admin({ onBack }) {
             • Gerenciar dias bloqueados (feriados, greves)<br />
             • Gerenciar as temáticas disponíveis
           </p>
-          <form onSubmit={handleLogin}>
+          <div style={{ position: 'relative' }}>
             <input
-              type="password"
+              type={mostrarSenha ? 'text' : 'password'}
               placeholder="Senha de acesso"
-              value={senha}
-              onChange={(e) => setSenha(e.target.value)}
+              value={senhaTemp}
+              onChange={(e) => setSenhaTemp(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && handleVerificarSenha()}
               style={{
                 width: '100%',
                 padding: '12px',
+                paddingRight: '40px',
                 border: '1px solid #ccc',
                 borderRadius: '8px',
                 fontSize: '14px',
@@ -395,24 +442,56 @@ function Admin({ onBack }) {
                 boxSizing: 'border-box'
               }}
             />
-            {erroSenha && <div style={{ color: '#dc2626', fontSize: '12px', marginBottom: '12px' }}>{erroSenha}</div>}
             <button
-              type="submit"
+              onClick={() => setMostrarSenha(!mostrarSenha)}
               style={{
-                width: '100%',
-                padding: '12px',
-                backgroundColor: '#1e3a5f',
-                color: 'white',
+                position: 'absolute',
+                right: '12px',
+                top: '12px',
+                background: 'none',
                 border: 'none',
-                borderRadius: '8px',
                 cursor: 'pointer',
-                fontWeight: 'bold'
+                color: '#6b7280'
               }}
             >
-              Entrar
+              {mostrarSenha ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
-          </form>
+          </div>
+          {erroSenha && <div style={{ color: '#dc2626', fontSize: '12px', marginBottom: '12px' }}>{erroSenha}</div>}
+          <button
+            onClick={handleVerificarSenha}
+            style={{
+              width: '100%',
+              padding: '12px',
+              backgroundColor: '#1e3a5f',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              fontWeight: 'bold'
+            }}
+          >
+            Verificar
+          </button>
         </div>
+
+        <Modal
+          isOpen={loginModalOpen}
+          onClose={() => {
+            setLoginModalOpen(false)
+            setSenhaTemp('')
+          }}
+          onConfirm={handleConfirmarNome}
+          title="Identificação"
+          message="Digite seu nome para registro de atividades:"
+          showInput={true}
+          inputPlaceholder="Seu nome completo"
+          inputValue={nomeLogin}
+          onInputChange={setNomeLogin}
+          confirmText="Acessar"
+          cancelText="Cancelar"
+          type="prompt"
+        />
       </div>
     )
   }
@@ -529,7 +608,7 @@ function Admin({ onBack }) {
                     </div>
                     <div>
                       <button onClick={() => editarItem(item)} style={{ background: 'none', border: 'none', cursor: 'pointer', marginRight: '8px', color: '#2563eb' }}><Edit size={18} /></button>
-                      <button onClick={() => excluirItem(item.id, item.titulo)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#dc2626' }}><Trash2 size={18} /></button>
+                      <button onClick={() => confirmarExclusao(item)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#dc2626' }}><Trash2 size={18} /></button>
                     </div>
                   </div>
                 ))}
@@ -553,10 +632,10 @@ function Admin({ onBack }) {
               {diasBloqueados.map(dia => (
                 <div key={dia.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px', borderBottom: '1px solid #e5e7eb' }}>
                   <div>
-                    <div>{new Date(dia.data).toLocaleDateString('pt-BR')}</div>
+                    <div>{dia.data_exibicao}</div>
                     <div style={{ fontSize: '11px', color: '#6b7280' }}>{dia.motivo}</div>
                   </div>
-                  <button onClick={() => removerDiaBloqueado(dia.id, new Date(dia.data).toLocaleDateString('pt-BR'), dia.motivo)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#dc2626' }}><Trash2 size={18} /></button>
+                  <button onClick={() => removerDiaBloqueado(dia.id, dia.data_exibicao, dia.motivo)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#dc2626' }}><Trash2 size={18} /></button>
                 </div>
               ))}
             </div>
@@ -585,6 +664,16 @@ function Admin({ onBack }) {
           </div>
         </div>
       )}
+
+      <Modal
+        isOpen={confirmModalOpen}
+        onClose={() => setConfirmModalOpen(false)}
+        onConfirm={excluirItem}
+        title="Confirmar Exclusão"
+        message={`Tem certeza que deseja excluir "${itemParaExcluir?.titulo}"? Esta ação não pode ser desfeita.`}
+        confirmText="Sim, excluir"
+        cancelText="Cancelar"
+      />
     </div>
   )
 }
