@@ -1,14 +1,15 @@
 import React from 'react'
-import { Library, Calendar, CheckCircle, Trophy, Tag, UserStar } from 'lucide-react'
+import { Library, Calendar, CheckCircle, Trophy, Tag, UserStar, HelpCircle } from 'lucide-react'
 
 function Menu({ active, onNavigate }) {
   const menuItems = [
-    { id: 'catalog', label: 'Acervo', icon: <Library size={16} /> },
-    { id: 'reservas', label: 'Reservas', icon: <Calendar size={16} /> },
+    { id: 'catalog',    label: 'Acervo',     icon: <Library size={16} /> },
+    { id: 'reservas',   label: 'Reservas',   icon: <Calendar size={16} /> },
     { id: 'devolucoes', label: 'Devoluções', icon: <CheckCircle size={16} /> },
-    { id: 'ranking', label: 'Ranking', icon: <Trophy size={16} /> },
-    { id: 'buscaTemas', label: 'Temas', icon: <Tag size={16} /> },
-    { id: 'admin', label: 'Login', icon: <UserStar size={16} /> }
+    { id: 'ranking',    label: 'Ranking',    icon: <Trophy size={16} /> },
+    { id: 'buscaTemas', label: 'Temas',      icon: <Tag size={16} /> },
+    { id: 'ajuda',      label: 'Ajuda',      icon: <HelpCircle size={16} /> },
+    { id: 'admin',      label: 'Login',      icon: <UserStar size={16} /> },
   ]
 
   return (

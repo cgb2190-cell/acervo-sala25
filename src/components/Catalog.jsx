@@ -8,6 +8,7 @@ import Ranking from './Ranking'
 import BuscaTemas from './BuscaTemas'
 import Admin from './Admin'
 import Menu from './Menu'
+import Ajuda from './Ajuda'
 
 function Catalog() {
   const [items, setItems] = useState([])
@@ -70,6 +71,14 @@ function Catalog() {
     setSelectedItem(null)
   }
 
+  if (paginaAtual === 'ajuda') {
+    return (
+      <>
+        <Menu active="ajuda" onNavigate={handleNavigate} />
+        <Ajuda onBack={() => handleNavigate('catalog')} />
+      </>
+    )
+  }
   if (paginaAtual === 'admin') {
     return (
       <>

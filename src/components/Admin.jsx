@@ -30,6 +30,8 @@ function Admin({ onBack }) {
     titulo: '',
     autores: '',
     tematicas: '',
+    descricao: '',
+    possibilidades_uso: '',
     tipo: 'livro_capa_dura',
     capa_url: '',
     capa_file: null,
@@ -187,6 +189,8 @@ function Admin({ onBack }) {
         titulo: formData.titulo,
         autores: formData.autores,
         tematicas: tematicasArray,
+        descricao: formData.descricao || null,
+        possibilidades_uso: formData.possibilidades_uso || null,
         tipo: formData.tipo
       }
       if (capaUrl) updateData.capa_url = capaUrl
@@ -212,6 +216,8 @@ function Admin({ onBack }) {
           titulo: formData.titulo,
           autores: formData.autores,
           tematicas: tematicasArray,
+          descricao: formData.descricao || null,
+          possibilidades_uso: formData.possibilidades_uso || null,
           tipo: formData.tipo,
           capa_url: capaUrl || null
         })
@@ -257,6 +263,8 @@ function Admin({ onBack }) {
       titulo: item.titulo,
       autores: item.autores || '',
       tematicas: item.tematicas ? item.tematicas.join('; ') : '',
+      descricao: item.descricao || '',
+      possibilidades_uso: item.possibilidades_uso || '',
       tipo: item.tipo,
       capa_url: item.capa_url || '',
       capa_file: null,
@@ -269,6 +277,8 @@ function Admin({ onBack }) {
       titulo: '',
       autores: '',
       tematicas: '',
+      descricao: '',
+      possibilidades_uso: '',
       tipo: 'livro_capa_dura',
       capa_url: '',
       capa_file: null,
@@ -559,6 +569,20 @@ function Admin({ onBack }) {
               <input type="text" placeholder="Título *" value={formData.titulo} onChange={(e) => setFormData({ ...formData, titulo: e.target.value })} style={{ width: '100%', padding: '8px', marginBottom: '8px', border: '1px solid #ccc', borderRadius: '6px', boxSizing: 'border-box' }} />
               <input type="text" placeholder="Autores (separados por ;)" value={formData.autores} onChange={(e) => setFormData({ ...formData, autores: e.target.value })} style={{ width: '100%', padding: '8px', marginBottom: '8px', border: '1px solid #ccc', borderRadius: '6px', boxSizing: 'border-box' }} />
               <input type="text" placeholder="Temáticas (separadas por ;)" value={formData.tematicas} onChange={(e) => setFormData({ ...formData, tematicas: e.target.value })} style={{ width: '100%', padding: '8px', marginBottom: '8px', border: '1px solid #ccc', borderRadius: '6px', boxSizing: 'border-box' }} />
+              <textarea
+                placeholder="Descrição do item"
+                value={formData.descricao}
+                onChange={(e) => setFormData({ ...formData, descricao: e.target.value })}
+                rows={3}
+                style={{ width: '100%', padding: '8px', marginBottom: '8px', border: '1px solid #ccc', borderRadius: '6px', boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit', fontSize: '14px' }}
+              />
+              <textarea
+                placeholder="Possibilidades de uso na sessão"
+                value={formData.possibilidades_uso}
+                onChange={(e) => setFormData({ ...formData, possibilidades_uso: e.target.value })}
+                rows={3}
+                style={{ width: '100%', padding: '8px', marginBottom: '8px', border: '1px solid #ccc', borderRadius: '6px', boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit', fontSize: '14px' }}
+              />
               <select value={formData.tipo} onChange={(e) => setFormData({ ...formData, tipo: e.target.value })} style={{ width: '100%', padding: '8px', marginBottom: '8px', border: '1px solid #ccc', borderRadius: '6px' }}>
                 <option value="livro_capa_dura">Livro Capa Dura</option>
                 <option value="livro_capa_mole">Livro Capa Mole</option>

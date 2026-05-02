@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
-import { BookOpen, Gamepad2, ArrowLeft } from 'lucide-react'
+import { BookOpen, Gamepad2, ArrowLeft, Sparkles } from 'lucide-react'
 
 function ItemDetail({ itemId, onBack }) {
   const [item, setItem] = useState(null)
@@ -114,6 +114,29 @@ function ItemDetail({ itemId, onBack }) {
           <div style={{ marginBottom: '16px' }}>
             <h3 style={{ fontSize: '14px', fontWeight: 'bold', color: '#374151', marginBottom: '4px' }}>Autores</h3>
             <p style={{ fontSize: '14px', color: '#6b7280' }}>{item.autores}</p>
+          </div>
+        )}
+
+        {item.descricao && (
+          <div style={{ marginBottom: '16px' }}>
+            <h3 style={{ fontSize: '14px', fontWeight: 'bold', color: '#374151', marginBottom: '4px' }}>Descrição</h3>
+            <p style={{ fontSize: '14px', color: '#6b7280', lineHeight: '1.6' }}>{item.descricao}</p>
+          </div>
+        )}
+
+        {item.possibilidades_uso && (
+          <div style={{ 
+            backgroundColor: '#f0fdf4', 
+            border: '1px solid #bbf7d0', 
+            borderRadius: '12px', 
+            padding: '16px',
+            marginBottom: '16px'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+              <Sparkles size={18} color="#166534" />
+              <h3 style={{ fontSize: '14px', fontWeight: 'bold', color: '#166534', margin: 0 }}>Possibilidades de uso</h3>
+            </div>
+            <p style={{ fontSize: '13px', color: '#374151', lineHeight: '1.6', margin: 0, whiteSpace: 'pre-line' }}>{item.possibilidades_uso}</p>
           </div>
         )}
 
