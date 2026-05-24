@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import RichEditor from './RichEditor'
 import { supabase } from '../lib/supabase'
 import { ArrowLeft, Lock, Plus, Trash2, Edit, Save, X, CalendarX, Tag, BookOpen, Gamepad2, Upload, Image as ImageIcon, LogOut, Search, SquarePen, Eye, EyeOff } from 'lucide-react'
 import { toast } from 'sonner'
@@ -30,9 +31,9 @@ function Admin({ onBack }) {
     titulo: '',
     autores: '',
     tematicas: '',
+    tipo: 'livro_capa_dura',
     descricao: '',
     possibilidades_uso: '',
-    tipo: 'livro_capa_dura',
     capa_url: '',
     capa_file: null,
     capa_preview: null
@@ -189,9 +190,9 @@ function Admin({ onBack }) {
         titulo: formData.titulo,
         autores: formData.autores,
         tematicas: tematicasArray,
+        tipo: formData.tipo,
         descricao: formData.descricao || null,
-        possibilidades_uso: formData.possibilidades_uso || null,
-        tipo: formData.tipo
+        possibilidades_uso: formData.possibilidades_uso || null
       }
       if (capaUrl) updateData.capa_url = capaUrl
       
@@ -216,9 +217,9 @@ function Admin({ onBack }) {
           titulo: formData.titulo,
           autores: formData.autores,
           tematicas: tematicasArray,
+          tipo: formData.tipo,
           descricao: formData.descricao || null,
           possibilidades_uso: formData.possibilidades_uso || null,
-          tipo: formData.tipo,
           capa_url: capaUrl || null
         })
       
@@ -263,9 +264,9 @@ function Admin({ onBack }) {
       titulo: item.titulo,
       autores: item.autores || '',
       tematicas: item.tematicas ? item.tematicas.join('; ') : '',
+      tipo: item.tipo,
       descricao: item.descricao || '',
       possibilidades_uso: item.possibilidades_uso || '',
-      tipo: item.tipo,
       capa_url: item.capa_url || '',
       capa_file: null,
       capa_preview: item.capa_url || null
@@ -277,9 +278,9 @@ function Admin({ onBack }) {
       titulo: '',
       autores: '',
       tematicas: '',
+      tipo: 'livro_capa_dura',
       descricao: '',
       possibilidades_uso: '',
-      tipo: 'livro_capa_dura',
       capa_url: '',
       capa_file: null,
       capa_preview: null
@@ -569,20 +570,24 @@ function Admin({ onBack }) {
               <input type="text" placeholder="Título *" value={formData.titulo} onChange={(e) => setFormData({ ...formData, titulo: e.target.value })} style={{ width: '100%', padding: '8px', marginBottom: '8px', border: '1px solid #ccc', borderRadius: '6px', boxSizing: 'border-box' }} />
               <input type="text" placeholder="Autores (separados por ;)" value={formData.autores} onChange={(e) => setFormData({ ...formData, autores: e.target.value })} style={{ width: '100%', padding: '8px', marginBottom: '8px', border: '1px solid #ccc', borderRadius: '6px', boxSizing: 'border-box' }} />
               <input type="text" placeholder="Temáticas (separadas por ;)" value={formData.tematicas} onChange={(e) => setFormData({ ...formData, tematicas: e.target.value })} style={{ width: '100%', padding: '8px', marginBottom: '8px', border: '1px solid #ccc', borderRadius: '6px', boxSizing: 'border-box' }} />
-              <textarea
-                placeholder="Descrição do item"
-                value={formData.descricao}
-                onChange={(e) => setFormData({ ...formData, descricao: e.target.value })}
-                rows={3}
-                style={{ width: '100%', padding: '8px', marginBottom: '8px', border: '1px solid #ccc', borderRadius: '6px', boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit', fontSize: '14px' }}
-              />
-              <textarea
-                placeholder="Possibilidades de uso na sessão"
-                value={formData.possibilidades_uso}
-                onChange={(e) => setFormData({ ...formData, possibilidades_uso: e.target.value })}
-                rows={3}
-                style={{ width: '100%', padding: '8px', marginBottom: '8px', border: '1px solid #ccc', borderRadius: '6px', boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit', fontSize: '14px' }}
-              />
+              <div style={{ marginBottom: '8px' }}>
+                <label style={{ display: 'block', fontSize: '12px', color: '#6b7280', marginBottom: '4px' }}>Descrição</label>
+                <textarea
+                  placeholder="Breve descrição do item (opcional)"
+                  value={formData.descricao}
+                  onChange={(e) => setFormData({ ...formData, descricao: e.target.value })}
+                  rows={3}
+                  style={{ width: '100%', padding: '8px', border: '1px solid #ccc', borderRadius: '6px', boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit', fontSize: '14px' }}
+                />
+              </div>
+              <div style={{ marginBottom: '8px' }}>
+                <label style={{ display: 'block', fontSize: '12px', color: '#6b7280', marginBottom: '4px' }}>Possibilidades de uso</label>
+                <RichEditor
+                  value={formData.possibilidades_uso}
+                  onChange={(val) => setFormData({ ...formData, possibilidades_uso: val })}
+                  placeholder="Possibilidades de uso (opcional)"
+                />
+              </div>
               <select value={formData.tipo} onChange={(e) => setFormData({ ...formData, tipo: e.target.value })} style={{ width: '100%', padding: '8px', marginBottom: '8px', border: '1px solid #ccc', borderRadius: '6px' }}>
                 <option value="livro_capa_dura">Livro Capa Dura</option>
                 <option value="livro_capa_mole">Livro Capa Mole</option>

@@ -61,3 +61,21 @@ button {
 input, select, textarea {
   font-family: inherit;
 }
+/* Tiptap rich text content */
+.tiptap-content ul { padding-left: 20px; margin: 6px 0; }
+.tiptap-content ol { padding-left: 20px; margin: 6px 0; }
+.tiptap-content li { margin-bottom: 4px; }
+.tiptap-content p { margin: 0 0 6px 0; }
+.tiptap-content p:last-child { margin-bottom: 0; }
+.tiptap-content strong { font-weight: 600; }
+.tiptap-content em { font-style: italic; }
+ 
+/* Tiptap editor area */
+.ProseMirror { outline: none; }
+.ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  color: #9ca3af;
+  pointer-events: none;
+  float: left;
+  height: 0;
+}
