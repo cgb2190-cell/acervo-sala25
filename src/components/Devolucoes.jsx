@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
-import { ArrowLeft, CheckCircle, BookOpen, Gamepad2, Calendar, User, BookHeart } from 'lucide-react'
+import { ArrowLeft, CheckCircle, BookOpen, Puzzle, Sparkles, Calendar, User, BookHeart } from 'lucide-react'
 import { toast } from 'sonner'
+import Menu from './Menu'
 import Modal from './Modal'
 
-function Devolucoes({ onBack }) {
+function Devolucoes() {
+  const navigate = useNavigate()
   const [reservasAtivas, setReservasAtivas] = useState([])
   const [loading, setLoading] = useState(true)
   const [processando, setProcessando] = useState(false)
@@ -58,7 +61,8 @@ function Devolucoes({ onBack }) {
 
   const getIcon = (tipo, size = 16) => {
     if (tipo?.includes('livro')) return <BookOpen size={size} color="#2563eb" />
-    return <Gamepad2 size={size} color="#16a34a" />
+    if (tipo === 'jogo') return <Puzzle size={size} color="#16a34a" />
+    return <Sparkles size={size} color="#7c3aed" />
   }
 
   function handleRecursoChange(recurso) {
@@ -149,69 +153,45 @@ function Devolucoes({ onBack }) {
   }
 
   return (
-    <div style={{ maxWidth: '600px', margin: '0 auto', padding: 16 }}>
-      <button
-        onClick={onBack}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          background: 'none',
-          border: 'none',
-          cursor: 'pointer',
-          color: '#1e3a5f',
-          marginBottom: '20px',
-          fontSize: '14px'
-        }}
-      >
-        <ArrowLeft size={18} /> Voltar
-      </button>
+    <>
+      <Menu />
+      <div style={{ maxWidth: '600px', margin: '0 auto', padding: 16 }}>
+        <button
+          onClick={() => navigate(-1)}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            color: '#1e3a5f',
+            marginBottom: '20px',
+            fontSize: '14px'
+          }}
+        >
+          <ArrowLeft size={18} /> Voltar
+        </button>
 
-      <h1 style={{ textAlign: 'center', color: '#1e3a5f', marginBottom: '32px' }}>
-        Registrar Devolução
-      </h1>
+        <h1 style={{ textAlign: 'center', color: '#1e3a5f', marginBottom: '32px' }}>
+          Registrar Devolução
+        </h1>
 
-      {reservasAtivas.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '40px', color: '#9ca3af', backgroundColor: '#f3f4f6', borderRadius: '12px' }}>
-          Nenhum item emprestado no momento
-        </div>
-      ) : (
-        <div>
-          {/* Recurso terapêutico */}
-          <div style={{ marginBottom: 16 }}>
-            <label style={{ display: 'block', fontWeight: 'bold', marginBottom: 6, fontSize: 13, color: '#374151' }}>
-              <BookHeart size={14} style={{ display: 'inline', marginRight: '6px' }} />
-              Recurso terapêutico
-            </label>
-            <select
-              value={recursoSelecionado}
-              onChange={(e) => handleRecursoChange(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '10px',
-                border: '1px solid #ccc',
-                borderRadius: '8px',
-                fontSize: '14px',
-                backgroundColor: 'white'
-              }}
-            >
-              <option value="">Selecione o recurso...</option>
-              {recursosUnicos.map(recurso => (
-                <option key={recurso} value={recurso}>{recurso}</option>
-              ))}
-            </select>
+        {reservasAtivas.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '40px', color: '#9ca3af', backgroundColor: '#f3f4f6', borderRadius: '12px' }}>
+            Nenhum item emprestado no momento
           </div>
-
-          {/* Data e horário */}
-          {recursoSelecionado && slotsDisponiveis.length > 0 && (
+        ) : (
+          <div>
+            {/* Recurso terapêutico */}
             <div style={{ marginBottom: 16 }}>
               <label style={{ display: 'block', fontWeight: 'bold', marginBottom: 6, fontSize: 13, color: '#374151' }}>
-                <Calendar size={14} style={{ display: 'inline', marginRight: '6px' }} />
-                Data e horário
+                <BookHeart size={14} style={{ display: 'inline', marginRight: '6px' }} />
+                Recurso terapêutico
               </label>
               <select
-                value={slotSelecionado}
-                onChange={(e) => handleSlotChange(e.target.value)}
+                value={recursoSelecionado}
+                onChange={(e) => handleRecursoChange(e.target.value)}
                 style={{
                   width: '100%',
                   padding: '10px',
@@ -221,118 +201,145 @@ function Devolucoes({ onBack }) {
                   backgroundColor: 'white'
                 }}
               >
-                <option value="">Selecione a data/horário...</option>
-                {slotsDisponiveis.map(slot => (
-                  <option key={slot.key} value={slot.key}>{slot.label}</option>
+                <option value="">Selecione o recurso...</option>
+                {recursosUnicos.map(recurso => (
+                  <option key={recurso} value={recurso}>{recurso}</option>
                 ))}
               </select>
             </div>
-          )}
 
-          {/* Reservado por */}
-          {slotSelecionado && pessoasDisponiveis.length > 0 && (
-            <div style={{ marginBottom: 16 }}>
-              <label style={{ display: 'block', fontWeight: 'bold', marginBottom: 6, fontSize: 13, color: '#374151' }}>
-                <User size={14} style={{ display: 'inline', marginRight: '6px' }} />
-                Reservado por
-              </label>
-              <select
-                value={nomeSelecionado}
-                onChange={(e) => {
-                  const pessoa = pessoasDisponiveis[parseInt(e.target.value)]
-                  if (pessoa) {
-                    handleNomeChange(
-                      pessoa.usuario_nome,
-                      pessoa.id,
-                      pessoa.acervo?.titulo,
-                      pessoa.data_uso,
-                      pessoa.horario,
-                      pessoa.acervo?.tipo
-                    )
-                  }
-                }}
-                style={{
-                  width: '100%',
-                  padding: '10px',
-                  border: '1px solid #ccc',
-                  borderRadius: '8px',
-                  fontSize: '14px',
-                  backgroundColor: 'white'
-                }}
-              >
-                <option value="">Selecione quem reservou...</option>
-                {pessoasDisponiveis.map((pessoa, idx) => (
-                  <option key={pessoa.id} value={idx}>{pessoa.usuario_nome}</option>
-                ))}
-              </select>
-            </div>
-          )}
+            {/* Data e horário */}
+            {recursoSelecionado && slotsDisponiveis.length > 0 && (
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ display: 'block', fontWeight: 'bold', marginBottom: 6, fontSize: 13, color: '#374151' }}>
+                  <Calendar size={14} style={{ display: 'inline', marginRight: '6px' }} />
+                  Data e horário
+                </label>
+                <select
+                  value={slotSelecionado}
+                  onChange={(e) => handleSlotChange(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    border: '1px solid #ccc',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    backgroundColor: 'white'
+                  }}
+                >
+                  <option value="">Selecione a data/horário...</option>
+                  {slotsDisponiveis.map(slot => (
+                    <option key={slot.key} value={slot.key}>{slot.label}</option>
+                  ))}
+                </select>
+              </div>
+            )}
 
-          {/* Resumo */}
-          {resumo && (
-            <div style={{
-              backgroundColor: '#EBF5FB',
-              border: '1px solid #AED6F1',
-              borderRadius: '8px',
-              padding: '12px',
-              marginBottom: '16px',
-              fontSize: '13px',
-              lineHeight: '1.6'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                {getIcon(resumo.tipo, 16)}
-                <strong>Item:</strong> {resumo.livro}
+            {/* Reservado por */}
+            {slotSelecionado && pessoasDisponiveis.length > 0 && (
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ display: 'block', fontWeight: 'bold', marginBottom: 6, fontSize: 13, color: '#374151' }}>
+                  <User size={14} style={{ display: 'inline', marginRight: '6px' }} />
+                  Reservado por
+                </label>
+                <select
+                  value={nomeSelecionado}
+                  onChange={(e) => {
+                    const pessoa = pessoasDisponiveis[parseInt(e.target.value)]
+                    if (pessoa) {
+                      handleNomeChange(
+                        pessoa.usuario_nome,
+                        pessoa.id,
+                        pessoa.acervo?.titulo,
+                        pessoa.data_uso,
+                        pessoa.horario,
+                        pessoa.acervo?.tipo
+                      )
+                    }
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    border: '1px solid #ccc',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    backgroundColor: 'white'
+                  }}
+                >
+                  <option value="">Selecione quem reservou...</option>
+                  {pessoasDisponiveis.map((pessoa, idx) => (
+                    <option key={pessoa.id} value={idx}>{pessoa.usuario_nome}</option>
+                  ))}
+                </select>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                <User size={14} color="#6b7280" />
-                <strong>Reservado por:</strong> {resumo.nome}
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Calendar size={14} color="#6b7280" />
-                <strong>Data:</strong> {resumo.data} às {resumo.horario}
-              </div>
-            </div>
-          )}
+            )}
 
-          {/* Botão registrar */}
-          {resumo && (
-            <button
-              onClick={handleConfirmarDevolucao}
-              disabled={processando}
-              style={{
-                width: '100%',
-                padding: '12px',
-                backgroundColor: '#3D7A3D',
-                color: 'white',
-                border: 'none',
+            {/* Resumo */}
+            {resumo && (
+              <div style={{
+                backgroundColor: '#EBF5FB',
+                border: '1px solid #AED6F1',
                 borderRadius: '8px',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                fontWeight: 'bold',
-                fontSize: '14px',
-                opacity: processando ? 0.6 : 1
-              }}
-            >
-              <CheckCircle size={18} />
-              {processando ? 'Processando...' : 'Registrar devolução'}
-            </button>
-          )}
-        </div>
-      )}
+                padding: '12px',
+                marginBottom: '16px',
+                fontSize: '13px',
+                lineHeight: '1.6'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                  {getIcon(resumo.tipo, 16)}
+                  <strong>Item:</strong> {resumo.livro}
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                  <User size={14} color="#6b7280" />
+                  <strong>Reservado por:</strong> {resumo.nome}
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Calendar size={14} color="#6b7280" />
+                  <strong>Data:</strong> {resumo.data} às {resumo.horario}
+                </div>
+              </div>
+            )}
 
-      <Modal
-        isOpen={confirmModalOpen}
-        onClose={() => setConfirmModalOpen(false)}
-        onConfirm={registrarDevolucao}
-        title="Confirmar Devolução"
-        message={`Confirmar devolução de "${resumo?.livro}" para ${resumo?.nome}?`}
-        confirmText="Sim, devolver"
-        cancelText="Cancelar"
-      />
-    </div>
+            {/* Botão registrar */}
+            {resumo && (
+              <button
+                onClick={handleConfirmarDevolucao}
+                disabled={processando}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  backgroundColor: '#3D7A3D',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  fontWeight: 'bold',
+                  fontSize: '14px',
+                  opacity: processando ? 0.6 : 1
+                }}
+              >
+                <CheckCircle size={18} />
+                {processando ? 'Processando...' : 'Registrar devolução'}
+              </button>
+            )}
+          </div>
+        )}
+
+        <Modal
+          isOpen={confirmModalOpen}
+          onClose={() => setConfirmModalOpen(false)}
+          onConfirm={registrarDevolucao}
+          title="Confirmar Devolução"
+          message={`Confirmar devolução de "${resumo?.livro}" para ${resumo?.nome}?`}
+          confirmText="Sim, devolver"
+          cancelText="Cancelar"
+        />
+      </div>
+    </>
   )
 }
 

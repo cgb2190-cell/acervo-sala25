@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   ArrowLeft, ChevronDown,
   BookOpen, Calendar, CheckCircle, Trophy, Tag,
@@ -169,14 +170,15 @@ function LegendaCores() {
   )
 }
 
-function Ajuda({ onBack }) {
+function Ajuda() {
+  const navigate = useNavigate()
   const [tabAtiva, setTabAtiva] = useState('estagiarios')
 
   return (
     <div style={{ maxWidth: '640px', margin: '0 auto', padding: '16px' }}>
       {/* Cabeçalho */}
       <button
-        onClick={onBack}
+        onClick={() => navigate(-1)}
         style={{
           display: 'flex', alignItems: 'center', gap: '8px',
           background: 'none', border: 'none', cursor: 'pointer',

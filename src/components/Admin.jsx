@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import RichEditor from './RichEditor'
 import { supabase } from '../lib/supabase'
 import { ArrowLeft, Lock, Plus, Trash2, Edit, Save, X, CalendarX, Tag, BookOpen, Gamepad2, Upload, Image as ImageIcon, LogOut, Search, SquarePen, Eye, EyeOff } from 'lucide-react'
 import { toast } from 'sonner'
 import Modal from './Modal'
+import Menu from './Menu'
 
-function Admin({ onBack }) {
+function Admin() {
+  const navigate = useNavigate()
   const [autenticado, setAutenticado] = useState(false)
   const [aba, setAba] = useState('acervo')
   const [buscaAcervo, setBuscaAcervo] = useState('')
@@ -409,7 +412,7 @@ function Admin({ onBack }) {
     return (
       <div style={{ maxWidth: '400px', margin: '0 auto', padding: '16px' }}>
         <button
-          onClick={onBack}
+          onClick={() => navigate(-1)}
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -508,202 +511,206 @@ function Admin({ onBack }) {
   }
 
   return (
-    <div style={{ maxWidth: '800px', margin: '0 auto', padding: '16px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-        <button
-          onClick={onBack}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-            color: '#1e3a5f',
-            fontSize: '14px'
-          }}
-        >
-          <ArrowLeft size={18} /> Voltar
-        </button>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <span style={{ fontSize: '12px', color: '#6b7280' }}>👤 {usuarioLogado}</span>
+    <>
+      <Menu />
+      <div style={{ maxWidth: '800px', margin: '0 auto', padding: '16px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
           <button
-            onClick={handleLogout}
+            onClick={() => navigate(-1)}
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '6px',
-              padding: '6px 12px',
-              backgroundColor: '#ef4444',
-              color: 'white',
+              gap: '8px',
+              background: 'none',
               border: 'none',
-              borderRadius: '8px',
               cursor: 'pointer',
-              fontSize: '12px'
+              color: '#1e3a5f',
+              fontSize: '14px'
             }}
           >
-            <LogOut size={14} />
-            Sair
+            <ArrowLeft size={18} /> Voltar
+          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <span style={{ fontSize: '12px', color: '#6b7280' }}>👤 {usuarioLogado}</span>
+            <button
+              onClick={handleLogout}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '6px 12px',
+                backgroundColor: '#ef4444',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontSize: '12px'
+              }}
+            >
+              <LogOut size={14} />
+              Sair
+            </button>
+          </div>
+        </div>
+
+        <h1 style={{ textAlign: 'center', color: '#1e3a5f', marginBottom: '20px' }}>Administração</h1>
+
+        <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', flexWrap: 'wrap' }}>
+          <button onClick={() => setAba('acervo')} style={{ padding: '8px 16px', backgroundColor: aba === 'acervo' ? '#1e3a5f' : '#e5e7eb', color: aba === 'acervo' ? 'white' : '#374151', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>
+            <BookOpen size={16} style={{ display: 'inline', marginRight: '6px' }} /> Acervo
+          </button>
+          <button onClick={() => setAba('bloqueados')} style={{ padding: '8px 16px', backgroundColor: aba === 'bloqueados' ? '#1e3a5f' : '#e5e7eb', color: aba === 'bloqueados' ? 'white' : '#374151', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>
+            <CalendarX size={16} style={{ display: 'inline', marginRight: '6px' }} /> Dias Bloqueados
+          </button>
+          <button onClick={() => setAba('temas')} style={{ padding: '8px 16px', backgroundColor: aba === 'temas' ? '#1e3a5f' : '#e5e7eb', color: aba === 'temas' ? 'white' : '#374151', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>
+            <Tag size={16} style={{ display: 'inline', marginRight: '6px' }} /> Temas
           </button>
         </div>
-      </div>
 
-      <h1 style={{ textAlign: 'center', color: '#1e3a5f', marginBottom: '20px' }}>Administração</h1>
-
-      <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', flexWrap: 'wrap' }}>
-        <button onClick={() => setAba('acervo')} style={{ padding: '8px 16px', backgroundColor: aba === 'acervo' ? '#1e3a5f' : '#e5e7eb', color: aba === 'acervo' ? 'white' : '#374151', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>
-          <BookOpen size={16} style={{ display: 'inline', marginRight: '6px' }} /> Acervo
-        </button>
-        <button onClick={() => setAba('bloqueados')} style={{ padding: '8px 16px', backgroundColor: aba === 'bloqueados' ? '#1e3a5f' : '#e5e7eb', color: aba === 'bloqueados' ? 'white' : '#374151', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>
-          <CalendarX size={16} style={{ display: 'inline', marginRight: '6px' }} /> Dias Bloqueados
-        </button>
-        <button onClick={() => setAba('temas')} style={{ padding: '8px 16px', backgroundColor: aba === 'temas' ? '#1e3a5f' : '#e5e7eb', color: aba === 'temas' ? 'white' : '#374151', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>
-          <Tag size={16} style={{ display: 'inline', marginRight: '6px' }} /> Temas
-        </button>
-      </div>
-
-      {aba === 'acervo' && (
-        <div>
-          <div style={{ backgroundColor: '#f3f4f6', padding: '16px', borderRadius: '12px', marginBottom: '20px' }}>
-            <h3 style={{ margin: '0 0 12px 0' }}>{editando ? 'Editar Item' : 'Adicionar Novo Item'}</h3>
-            <div style={{ marginBottom: '8px' }}>
-              <input type="text" placeholder="Título *" value={formData.titulo} onChange={(e) => setFormData({ ...formData, titulo: e.target.value })} style={{ width: '100%', padding: '8px', marginBottom: '8px', border: '1px solid #ccc', borderRadius: '6px', boxSizing: 'border-box' }} />
-              <input type="text" placeholder="Autores (separados por ;)" value={formData.autores} onChange={(e) => setFormData({ ...formData, autores: e.target.value })} style={{ width: '100%', padding: '8px', marginBottom: '8px', border: '1px solid #ccc', borderRadius: '6px', boxSizing: 'border-box' }} />
-              <input type="text" placeholder="Temáticas (separadas por ;)" value={formData.tematicas} onChange={(e) => setFormData({ ...formData, tematicas: e.target.value })} style={{ width: '100%', padding: '8px', marginBottom: '8px', border: '1px solid #ccc', borderRadius: '6px', boxSizing: 'border-box' }} />
+        {aba === 'acervo' && (
+          <div>
+            <div style={{ backgroundColor: '#f3f4f6', padding: '16px', borderRadius: '12px', marginBottom: '20px' }}>
+              <h3 style={{ margin: '0 0 12px 0' }}>{editando ? 'Editar Item' : 'Adicionar Novo Item'}</h3>
               <div style={{ marginBottom: '8px' }}>
-                <label style={{ display: 'block', fontSize: '12px', color: '#6b7280', marginBottom: '4px' }}>Descrição</label>
-                <textarea
-                  placeholder="Breve descrição do item (opcional)"
-                  value={formData.descricao}
-                  onChange={(e) => setFormData({ ...formData, descricao: e.target.value })}
-                  rows={3}
-                  style={{ width: '100%', padding: '8px', border: '1px solid #ccc', borderRadius: '6px', boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit', fontSize: '14px' }}
-                />
-              </div>
-              <div style={{ marginBottom: '8px' }}>
-                <label style={{ display: 'block', fontSize: '12px', color: '#6b7280', marginBottom: '4px' }}>Possibilidades de uso</label>
-                <RichEditor
-                  value={formData.possibilidades_uso}
-                  onChange={(val) => setFormData({ ...formData, possibilidades_uso: val })}
-                  placeholder="Possibilidades de uso (opcional)"
-                />
-              </div>
-              <select value={formData.tipo} onChange={(e) => setFormData({ ...formData, tipo: e.target.value })} style={{ width: '100%', padding: '8px', marginBottom: '8px', border: '1px solid #ccc', borderRadius: '6px' }}>
-                <option value="livro_capa_dura">Livro Capa Dura</option>
-                <option value="livro_capa_mole">Livro Capa Mole</option>
-                <option value="jogo">Jogo</option>
-              </select>
-              
-              <div style={{ marginTop: '12px', marginBottom: '8px' }}>
-                <label style={{ display: 'block', marginBottom: '4px', fontSize: '12px', fontWeight: 'bold', color: '#374151' }}>Capa (imagem)</label>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 12px', backgroundColor: '#e5e7eb', borderRadius: '6px', cursor: 'pointer', fontSize: '12px' }}>
-                    <Upload size={14} /> Selecionar imagem
-                    <input type="file" accept="image/*" onChange={handleFileChange} style={{ display: 'none' }} />
-                  </label>
-                  {formData.capa_file && <span style={{ fontSize: '11px', color: '#10b981' }}>Arquivo selecionado: {formData.capa_file.name}</span>}
+                <input type="text" placeholder="Título *" value={formData.titulo} onChange={(e) => setFormData({ ...formData, titulo: e.target.value })} style={{ width: '100%', padding: '8px', marginBottom: '8px', border: '1px solid #ccc', borderRadius: '6px', boxSizing: 'border-box' }} />
+                <input type="text" placeholder="Autores (separados por ;)" value={formData.autores} onChange={(e) => setFormData({ ...formData, autores: e.target.value })} style={{ width: '100%', padding: '8px', marginBottom: '8px', border: '1px solid #ccc', borderRadius: '6px', boxSizing: 'border-box' }} />
+                <input type="text" placeholder="Temáticas (separadas por ;)" value={formData.tematicas} onChange={(e) => setFormData({ ...formData, tematicas: e.target.value })} style={{ width: '100%', padding: '8px', marginBottom: '8px', border: '1px solid #ccc', borderRadius: '6px', boxSizing: 'border-box' }} />
+                <div style={{ marginBottom: '8px' }}>
+                  <label style={{ display: 'block', fontSize: '12px', color: '#6b7280', marginBottom: '4px' }}>Descrição</label>
+                  <textarea
+                    placeholder="Breve descrição do item (opcional)"
+                    value={formData.descricao}
+                    onChange={(e) => setFormData({ ...formData, descricao: e.target.value })}
+                    rows={3}
+                    style={{ width: '100%', padding: '8px', border: '1px solid #ccc', borderRadius: '6px', boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit', fontSize: '14px' }}
+                  />
                 </div>
-                {formData.capa_preview && <div style={{ marginTop: '8px' }}><img src={formData.capa_preview} alt="Preview" style={{ width: '60px', height: '80px', objectFit: 'cover', borderRadius: '8px' }} /></div>}
-                {uploading && <div style={{ fontSize: '11px', color: '#2563eb', marginTop: '4px' }}>Enviando imagem...</div>}
+                <div style={{ marginBottom: '8px' }}>
+                  <label style={{ display: 'block', fontSize: '12px', color: '#6b7280', marginBottom: '4px' }}>Possibilidades de uso</label>
+                  <RichEditor
+                    value={formData.possibilidades_uso}
+                    onChange={(val) => setFormData({ ...formData, possibilidades_uso: val })}
+                    placeholder="Possibilidades de uso (opcional)"
+                  />
+                </div>
+                <select value={formData.tipo} onChange={(e) => setFormData({ ...formData, tipo: e.target.value })} style={{ width: '100%', padding: '8px', marginBottom: '8px', border: '1px solid #ccc', borderRadius: '6px' }}>
+                  <option value="livro_capa_dura">Livro Capa Dura</option>
+                  <option value="livro_capa_mole">Livro Capa Mole</option>
+                  <option value="jogo">Jogo</option>
+                  <option value="atividade">Atividade</option>
+                </select>
+                
+                <div style={{ marginTop: '12px', marginBottom: '8px' }}>
+                  <label style={{ display: 'block', marginBottom: '4px', fontSize: '12px', fontWeight: 'bold', color: '#374151' }}>Capa (imagem)</label>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 12px', backgroundColor: '#e5e7eb', borderRadius: '6px', cursor: 'pointer', fontSize: '12px' }}>
+                      <Upload size={14} /> Selecionar imagem
+                      <input type="file" accept="image/*" onChange={handleFileChange} style={{ display: 'none' }} />
+                    </label>
+                    {formData.capa_file && <span style={{ fontSize: '11px', color: '#10b981' }}>Arquivo selecionado: {formData.capa_file.name}</span>}
+                  </div>
+                  {formData.capa_preview && <div style={{ marginTop: '8px' }}><img src={formData.capa_preview} alt="Preview" style={{ width: '60px', height: '80px', objectFit: 'cover', borderRadius: '8px' }} /></div>}
+                  {uploading && <div style={{ fontSize: '11px', color: '#2563eb', marginTop: '4px' }}>Enviando imagem...</div>}
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button onClick={salvarItem} disabled={uploading} style={{ padding: '8px 16px', backgroundColor: '#10b981', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', opacity: uploading ? 0.6 : 1 }}>
+                  <Save size={16} /> {editando ? 'Atualizar' : 'Adicionar'}
+                </button>
+                {editando && <button onClick={limparForm} style={{ padding: '8px 16px', backgroundColor: '#6b7280', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>Cancelar</button>}
               </div>
             </div>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <button onClick={salvarItem} disabled={uploading} style={{ padding: '8px 16px', backgroundColor: '#10b981', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', opacity: uploading ? 0.6 : 1 }}>
-                <Save size={16} /> {editando ? 'Atualizar' : 'Adicionar'}
-              </button>
-              {editando && <button onClick={limparForm} style={{ padding: '8px 16px', backgroundColor: '#6b7280', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>Cancelar</button>}
+
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
+                <h3 style={{ margin: 0 }}>Itens do Acervo ({itens.length})</h3>
+                <div style={{ position: 'relative' }}>
+                  <input type="text" placeholder="Buscar item..." value={buscaAcervo} onChange={(e) => setBuscaAcervo(e.target.value)} style={{ padding: '6px 12px', paddingLeft: '28px', border: '1px solid #ccc', borderRadius: '20px', fontSize: '12px', width: '180px' }} />
+                  <Search size={14} style={{ position: 'absolute', left: '8px', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af' }} />
+                  {buscaAcervo && <button onClick={() => setBuscaAcervo('')} style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '12px', color: '#9ca3af' }}>✕</button>}
+                </div>
+              </div>
+              {loading && <div>Carregando...</div>}
+              <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
+                {itens
+                  .filter(item => buscaAcervo === '' || item.titulo.toLowerCase().includes(buscaAcervo.toLowerCase()) || (item.autores && item.autores.toLowerCase().includes(buscaAcervo.toLowerCase())))
+                  .map(item => (
+                    <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px', borderBottom: '1px solid #e5e7eb' }}>
+                      <div>
+                        <div style={{ fontWeight: 'bold' }}>{item.titulo}</div>
+                        <div style={{ fontSize: '11px', color: '#6b7280' }}>{item.tipo === 'jogo' ? 'Jogo' : 'Livro'}</div>
+                        {item.capa_url && <div style={{ fontSize: '10px', color: '#9ca3af' }}>Com capa</div>}
+                      </div>
+                      <div>
+                        <button onClick={() => editarItem(item)} style={{ background: 'none', border: 'none', cursor: 'pointer', marginRight: '8px', color: '#2563eb' }}><Edit size={18} /></button>
+                        <button onClick={() => confirmarExclusao(item)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#dc2626' }}><Trash2 size={18} /></button>
+                      </div>
+                    </div>
+                  ))}
+                {buscaAcervo && itens.filter(i => i.titulo.toLowerCase().includes(buscaAcervo.toLowerCase())).length === 0 && <div style={{ textAlign: 'center', padding: '20px', color: '#9ca3af' }}>Nenhum item encontrado para "{buscaAcervo}"</div>}
+              </div>
             </div>
           </div>
+        )}
 
+        {aba === 'bloqueados' && (
           <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
-              <h3 style={{ margin: 0 }}>Itens do Acervo ({itens.length})</h3>
-              <div style={{ position: 'relative' }}>
-                <input type="text" placeholder="Buscar item..." value={buscaAcervo} onChange={(e) => setBuscaAcervo(e.target.value)} style={{ padding: '6px 12px', paddingLeft: '28px', border: '1px solid #ccc', borderRadius: '20px', fontSize: '12px', width: '180px' }} />
-                <Search size={14} style={{ position: 'absolute', left: '8px', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af' }} />
-                {buscaAcervo && <button onClick={() => setBuscaAcervo('')} style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '12px', color: '#9ca3af' }}>✕</button>}
-              </div>
+            <div style={{ backgroundColor: '#f3f4f6', padding: '16px', borderRadius: '12px', marginBottom: '20px' }}>
+              <h3 style={{ margin: '0 0 12px 0' }}>Adicionar Bloqueio</h3>
+              <input type="date" value={novaData} onChange={(e) => setNovaData(e.target.value)} style={{ width: '100%', padding: '8px', marginBottom: '8px', border: '1px solid #ccc', borderRadius: '6px', boxSizing: 'border-box' }} />
+              <input type="text" placeholder="Motivo (ex: Feriado, Greve, Recesso)" value={novoMotivo} onChange={(e) => setNovoMotivo(e.target.value)} style={{ width: '100%', padding: '8px', marginBottom: '8px', border: '1px solid #ccc', borderRadius: '6px', boxSizing: 'border-box' }} />
+              <button onClick={adicionarDiaBloqueado} style={{ padding: '8px 16px', backgroundColor: '#10b981', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}><Plus size={16} /> Adicionar</button>
             </div>
-            {loading && <div>Carregando...</div>}
-            <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
-              {itens
-                .filter(item => buscaAcervo === '' || item.titulo.toLowerCase().includes(buscaAcervo.toLowerCase()) || (item.autores && item.autores.toLowerCase().includes(buscaAcervo.toLowerCase())))
-                .map(item => (
-                  <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px', borderBottom: '1px solid #e5e7eb' }}>
+            <div>
+              <h3>Dias Bloqueados ({diasBloqueados.length})</h3>
+              <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
+                {diasBloqueados.map(dia => (
+                  <div key={dia.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px', borderBottom: '1px solid #e5e7eb' }}>
                     <div>
-                      <div style={{ fontWeight: 'bold' }}>{item.titulo}</div>
-                      <div style={{ fontSize: '11px', color: '#6b7280' }}>{item.tipo === 'jogo' ? 'Jogo' : 'Livro'}</div>
-                      {item.capa_url && <div style={{ fontSize: '10px', color: '#9ca3af' }}>Com capa</div>}
+                      <div>{dia.data_exibicao}</div>
+                      <div style={{ fontSize: '11px', color: '#6b7280' }}>{dia.motivo}</div>
                     </div>
-                    <div>
-                      <button onClick={() => editarItem(item)} style={{ background: 'none', border: 'none', cursor: 'pointer', marginRight: '8px', color: '#2563eb' }}><Edit size={18} /></button>
-                      <button onClick={() => confirmarExclusao(item)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#dc2626' }}><Trash2 size={18} /></button>
-                    </div>
+                    <button onClick={() => removerDiaBloqueado(dia.id, dia.data_exibicao, dia.motivo)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#dc2626' }}><Trash2 size={18} /></button>
                   </div>
                 ))}
-              {buscaAcervo && itens.filter(i => i.titulo.toLowerCase().includes(buscaAcervo.toLowerCase())).length === 0 && <div style={{ textAlign: 'center', padding: '20px', color: '#9ca3af' }}>Nenhum item encontrado para "{buscaAcervo}"</div>}
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {aba === 'bloqueados' && (
-        <div>
-          <div style={{ backgroundColor: '#f3f4f6', padding: '16px', borderRadius: '12px', marginBottom: '20px' }}>
-            <h3 style={{ margin: '0 0 12px 0' }}>Adicionar Bloqueio</h3>
-            <input type="date" value={novaData} onChange={(e) => setNovaData(e.target.value)} style={{ width: '100%', padding: '8px', marginBottom: '8px', border: '1px solid #ccc', borderRadius: '6px', boxSizing: 'border-box' }} />
-            <input type="text" placeholder="Motivo (ex: Feriado, Greve, Recesso)" value={novoMotivo} onChange={(e) => setNovoMotivo(e.target.value)} style={{ width: '100%', padding: '8px', marginBottom: '8px', border: '1px solid #ccc', borderRadius: '6px', boxSizing: 'border-box' }} />
-            <button onClick={adicionarDiaBloqueado} style={{ padding: '8px 16px', backgroundColor: '#10b981', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}><Plus size={16} /> Adicionar</button>
-          </div>
+        {aba === 'temas' && (
           <div>
-            <h3>Dias Bloqueados ({diasBloqueados.length})</h3>
-            <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
-              {diasBloqueados.map(dia => (
-                <div key={dia.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px', borderBottom: '1px solid #e5e7eb' }}>
-                  <div>
-                    <div>{dia.data_exibicao}</div>
-                    <div style={{ fontSize: '11px', color: '#6b7280' }}>{dia.motivo}</div>
+            <div style={{ backgroundColor: '#f3f4f6', padding: '16px', borderRadius: '12px', marginBottom: '20px' }}>
+              <h3 style={{ margin: '0 0 12px 0' }}>Adicionar Tema</h3>
+              <input type="text" placeholder="Nome do tema" value={novoTema} onChange={(e) => setNovoTema(e.target.value)} style={{ width: '100%', padding: '8px', marginBottom: '8px', border: '1px solid #ccc', borderRadius: '6px', boxSizing: 'border-box' }} />
+              <button onClick={adicionarTema} style={{ padding: '8px 16px', backgroundColor: '#10b981', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}><Plus size={16} /> Adicionar Tema</button>
+            </div>
+            <div>
+              <h3>Temas Disponíveis ({temas.length})</h3>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', maxHeight: '400px', overflowY: 'auto' }}>
+                {temas.map(tema => (
+                  <div key={tema.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: '#f3f4f6', padding: '6px 12px', borderRadius: '20px' }}>
+                    <Tag size={14} color="#6b7280" />
+                    <span>{tema.nome}</span>
+                    <button onClick={() => removerTema(tema.id, tema.nome)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#dc2626', display: 'flex', alignItems: 'center' }}><X size={14} /></button>
                   </div>
-                  <button onClick={() => removerDiaBloqueado(dia.id, dia.data_exibicao, dia.motivo)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#dc2626' }}><Trash2 size={18} /></button>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {aba === 'temas' && (
-        <div>
-          <div style={{ backgroundColor: '#f3f4f6', padding: '16px', borderRadius: '12px', marginBottom: '20px' }}>
-            <h3 style={{ margin: '0 0 12px 0' }}>Adicionar Tema</h3>
-            <input type="text" placeholder="Nome do tema" value={novoTema} onChange={(e) => setNovoTema(e.target.value)} style={{ width: '100%', padding: '8px', marginBottom: '8px', border: '1px solid #ccc', borderRadius: '6px', boxSizing: 'border-box' }} />
-            <button onClick={adicionarTema} style={{ padding: '8px 16px', backgroundColor: '#10b981', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}><Plus size={16} /> Adicionar Tema</button>
-          </div>
-          <div>
-            <h3>Temas Disponíveis ({temas.length})</h3>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', maxHeight: '400px', overflowY: 'auto' }}>
-              {temas.map(tema => (
-                <div key={tema.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: '#f3f4f6', padding: '6px 12px', borderRadius: '20px' }}>
-                  <Tag size={14} color="#6b7280" />
-                  <span>{tema.nome}</span>
-                  <button onClick={() => removerTema(tema.id, tema.nome)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#dc2626', display: 'flex', alignItems: 'center' }}><X size={14} /></button>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      <Modal
-        isOpen={confirmModalOpen}
-        onClose={() => setConfirmModalOpen(false)}
-        onConfirm={excluirItem}
-        title="Confirmar Exclusão"
-        message={`Tem certeza que deseja excluir "${itemParaExcluir?.titulo}"? Esta ação não pode ser desfeita.`}
-        confirmText="Sim, excluir"
-        cancelText="Cancelar"
-      />
-    </div>
+        <Modal
+          isOpen={confirmModalOpen}
+          onClose={() => setConfirmModalOpen(false)}
+          onConfirm={excluirItem}
+          title="Confirmar Exclusão"
+          message={`Tem certeza que deseja excluir "${itemParaExcluir?.titulo}"? Esta ação não pode ser desfeita.`}
+          confirmText="Sim, excluir"
+          cancelText="Cancelar"
+        />
+      </div>
+    </>
   )
 }
 

@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { ArrowLeft, Medal, Award } from 'lucide-react'
+import Menu from './Menu'
 
-function Ranking({ onBack }) {
+function Ranking() {
+  const navigate = useNavigate()
   const [ranking, setRanking] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -41,91 +44,99 @@ function Ranking({ onBack }) {
   }
 
   if (loading) {
-    return <div style={{ textAlign: 'center', padding: 40 }}>Carregando ranking...</div>
+    return (
+      <>
+        <Menu />
+        <div style={{ textAlign: 'center', padding: 40 }}>Carregando ranking...</div>
+      </>
+    )
   }
 
   const maxReservas = ranking.length > 0 ? ranking[0].total_reservas : 0
 
   return (
-    <div style={{ maxWidth: '600px', margin: '0 auto', padding: 16 }}>
-      <button
-        onClick={onBack}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          background: 'none',
-          border: 'none',
-          cursor: 'pointer',
-          color: '#1e3a5f',
-          marginBottom: '20px',
-          fontSize: '14px'
-        }}
-      >
-        <ArrowLeft size={18} /> Voltar
-      </button>
+    <>
+      <Menu />
+      <div style={{ maxWidth: '600px', margin: '0 auto', padding: 16 }}>
+        <button
+          onClick={() => navigate(-1)}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            color: '#1e3a5f',
+            marginBottom: '20px',
+            fontSize: '14px'
+          }}
+        >
+          <ArrowLeft size={18} /> Voltar
+        </button>
 
-      <h1 style={{ textAlign: 'center', color: '#1e3a5f', marginBottom: '20px' }}>
-        Ranking de Uso
-      </h1>
+        <h1 style={{ textAlign: 'center', color: '#1e3a5f', marginBottom: '20px' }}>
+          Ranking de Uso
+        </h1>
 
-      {ranking.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '40px', color: '#9ca3af', backgroundColor: '#f3f4f6', borderRadius: '12px' }}>
-          Nenhum uso registrado ainda.
-          <br />
-          <span style={{ fontSize: '12px' }}>Faça reservas para aparecerem no ranking.</span>
-        </div>
-      ) : (
-        <div>
-          {ranking.map((item, index) => (
-            <div
-              key={index}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '12px',
-                padding: '10px',
-                marginBottom: '8px',
-                backgroundColor: index < 3 ? '#fefce8' : 'white',
-                borderRadius: '12px',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-              }}
-            >
-              <div style={{ width: '40px', textAlign: 'center' }}>
-                {getMedalIcon(item.posicao)}
-                <div style={{ fontSize: '10px', color: '#6b7280', marginTop: '2px' }}>
-                  {item.posicao}º
+        {ranking.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '40px', color: '#9ca3af', backgroundColor: '#f3f4f6', borderRadius: '12px' }}>
+            Nenhum uso registrado ainda.
+            <br />
+            <span style={{ fontSize: '12px' }}>Faça reservas para aparecerem no ranking.</span>
+          </div>
+        ) : (
+          <div>
+            {ranking.map((item, index) => (
+              <div
+                key={index}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  padding: '10px',
+                  marginBottom: '8px',
+                  backgroundColor: index < 3 ? '#fefce8' : 'white',
+                  borderRadius: '12px',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                }}
+              >
+                <div style={{ width: '40px', textAlign: 'center' }}>
+                  {getMedalIcon(item.posicao)}
+                  <div style={{ fontSize: '10px', color: '#6b7280', marginTop: '2px' }}>
+                    {item.posicao}º
+                  </div>
                 </div>
-              </div>
 
-              <div style={{ flex: 2, fontWeight: 'bold', fontSize: '14px', color: '#374151', wordBreak: 'break-word' }}>
-                {item.livro}
-              </div>
+                <div style={{ flex: 2, fontWeight: 'bold', fontSize: '14px', color: '#374151', wordBreak: 'break-word' }}>
+                  {item.livro}
+                </div>
 
-              <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <div style={{ 
-                  flex: 1, 
-                  height: '8px', 
-                  backgroundColor: '#e5e7eb', 
-                  borderRadius: '4px',
-                  overflow: 'hidden'
-                }}>
+                <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <div style={{ 
-                    width: `${getBarraWidth(item.total_reservas, maxReservas)}%`, 
-                    height: '100%', 
-                    backgroundColor: '#1e3a5f',
-                    borderRadius: '4px'
-                  }} />
-                </div>
-                <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#1e3a5f', minWidth: '35px' }}>
-                  {item.total_reservas}
+                    flex: 1, 
+                    height: '8px', 
+                    backgroundColor: '#e5e7eb', 
+                    borderRadius: '4px',
+                    overflow: 'hidden'
+                  }}>
+                    <div style={{ 
+                      width: `${getBarraWidth(item.total_reservas, maxReservas)}%`, 
+                      height: '100%', 
+                      backgroundColor: '#1e3a5f',
+                      borderRadius: '4px'
+                    }} />
+                  </div>
+                  <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#1e3a5f', minWidth: '35px' }}>
+                    {item.total_reservas}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </>
   )
 }
 
