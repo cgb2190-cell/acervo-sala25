@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useEffect, useRef } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { BookOpen, Puzzle, Sparkles, Filter, Search, Hourglass } from 'lucide-react'
 import Menu from './Menu'
@@ -10,6 +10,18 @@ function Catalog() {
   const [filter, setFilter] = useState('todos')
   const [searchTerm, setSearchTerm] = useState('')
   const navigate = useNavigate()
+  const location = useLocation()
+  const scrollPositionRef = useRef(0)
+
+  // Restaurar estado do filtro e busca quando voltar
+  useEffect(() => {
+    if (location.state?.filter) {
+      setFilter(location.state.filter)
+    }
+    if (location.state?.searchTerm) {
+      setSearchTerm(location.state.searchTerm)
+    }
+  }, [location.state?.filter, location.state?.searchTerm])
 
   useEffect(() => {
     async function fetchItems() {
@@ -21,8 +33,24 @@ function Catalog() {
       if (error) console.error('Erro:', error)
       else setItems(data)
       setLoading(false)
+      
+      // Restaurar a posição da rolagem DEPOIS de carregar os dados
+      if (location.state?.scrollPosition) {
+        setTimeout(() => {
+          window.scrollTo(0, location.state.scrollPosition)
+        }, 50)
+      }
     }
     fetchItems()
+  }, [])
+
+  // Salvar a posição da rolagem quando o usuário rolar
+  useEffect(() => {
+    const handleScroll = () => {
+      scrollPositionRef.current = window.scrollY
+    }
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
   const filteredItems = items.filter(item => {
@@ -42,6 +70,18 @@ function Catalog() {
     if (tipo?.includes('livro')) return <BookOpen size={size} color="#2563eb" />
     if (tipo === 'jogo') return <Puzzle size={size} color="#16a34a" />
     return <Sparkles size={size} color="#7c3aed" />
+  }
+
+  function handleItemClick(item) {
+    // Salvar o estado atual (filtro, busca e posição da rolagem)
+    const position = scrollPositionRef.current
+    navigate(`/item/${item.id}`, { 
+      state: { 
+        scrollPosition: position,
+        filter: filter,
+        searchTerm: searchTerm
+      }
+    })
   }
 
   const filterBtns = [
@@ -119,12 +159,15 @@ function Catalog() {
             filteredItems.map(item => (
               <div
                 key={item.id}
-                onClick={() => navigate(`/item/${item.id}`)}
+                onClick={() => handleItemClick(item)}
                 style={{
                   background: 'white', borderRadius: '12px', padding: '12px',
                   marginBottom: '12px', display: 'flex', gap: '12px',
-                  boxShadow: '0 2px 4px rgba(0,0,0,0.1)', cursor: 'pointer'
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.1)', cursor: 'pointer',
+                  transition: 'transform 0.2s'
                 }}
+                onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
+                onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
               >
                 <div style={{ width: '64px', height: '80px', backgroundColor: '#e5e7eb', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                   {item.capa_url ? (

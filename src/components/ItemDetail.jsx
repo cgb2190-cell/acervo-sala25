@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { BookOpen, Puzzle, Sparkles, ArrowLeft, Share2 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -17,6 +17,7 @@ function RenderConteudo({ valor, style }) {
 function ItemDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const location = useLocation()
   const [item, setItem] = useState(null)
   const [loading, setLoading] = useState(true)
 
@@ -44,6 +45,20 @@ function ItemDetail() {
     if (tipo === 'jogo') return 'Jogo'
     if (tipo === 'atividade') return 'Atividade'
     return tipo
+  }
+
+  function handleVoltar() {
+    const scrollPosition = location.state?.scrollPosition || 0
+    const filter = location.state?.filter || 'todos'
+    const searchTerm = location.state?.searchTerm || ''
+    
+    navigate('/', { 
+      state: { 
+        scrollPosition: scrollPosition,
+        filter: filter,
+        searchTerm: searchTerm
+      }
+    })
   }
 
   async function compartilhar() {
@@ -84,7 +99,7 @@ function ItemDetail() {
         {/* Cabeçalho com voltar e compartilhar */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
           <button
-            onClick={() => navigate(-1)}
+            onClick={handleVoltar}
             style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'none', border: 'none', cursor: 'pointer', color: '#1e3a5f', fontSize: '14px' }}
           >
             <ArrowLeft size={20} /> Voltar
