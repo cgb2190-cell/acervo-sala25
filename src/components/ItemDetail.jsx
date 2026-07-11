@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
-import { BookOpen, Puzzle, Sparkles, ArrowLeft, Share2 } from 'lucide-react'
+import { BookOpen, Puzzle, Sparkles, ArrowLeft, Share2, AlertCircle } from 'lucide-react'
 import { toast } from 'sonner'
 import Menu from './Menu'
+import { slugify } from '../utils/slugify'
 
 function RenderConteudo({ valor, style }) {
   if (!valor) return null
@@ -15,23 +16,66 @@ function RenderConteudo({ valor, style }) {
 }
 
 function ItemDetail() {
-  const { id } = useParams()
+  const { slug } = useParams()
   const navigate = useNavigate()
   const location = useLocation()
   const [item, setItem] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
 
   useEffect(() => {
     async function fetchItem() {
       setLoading(true)
-      const { data, error } = await supabase
-        .from('acervo').select('*').eq('id', id).single()
-      if (error) console.error('Erro:', error)
-      else setItem(data)
+      setError(false)
+      try {
+        // Se veio com ID (fallback), busca por ID
+        if (location.state?.itemId) {
+          const { data, error } = await supabase
+            .from('acervo')
+            .select('*')
+            .eq('id', location.state.itemId)
+            .single()
+          
+          if (error) {
+            console.error('Erro ao buscar item:', error)
+            setError(true)
+          } else if (data) {
+            setItem(data)
+          } else {
+            setError(true)
+          }
+          setLoading(false)
+          return
+        }
+
+        // Busca todos os itens e encontra pelo título
+        const { data, error } = await supabase
+          .from('acervo')
+          .select('*')
+          .order('titulo')
+        
+        if (error) {
+          console.error('Erro ao buscar itens:', error)
+          setError(true)
+        } else if (data) {
+          // Procura o item pelo slug do título
+          const foundItem = data.find(item => slugify(item.titulo) === slug)
+          if (foundItem) {
+            setItem(foundItem)
+          } else {
+            setError(true)
+          }
+        } else {
+          setError(true)
+        }
+      } catch (err) {
+        console.error('Erro:', err)
+        setError(true)
+      }
       setLoading(false)
     }
     fetchItem()
-  }, [id])
+  }, [slug, location.state?.itemId])
 
   const getIcon = (tipo) => {
     if (tipo?.includes('livro')) return <BookOpen size={48} color="#2563eb" />
@@ -65,7 +109,11 @@ function ItemDetail() {
     const url = window.location.href
     if (navigator.share) {
       try {
-        await navigator.share({ title: item.titulo, url })
+        await navigator.share({ 
+          title: item?.titulo || 'Item do Acervo', 
+          text: `Confira este item do acervo: ${item?.titulo || ''}`,
+          url: url 
+        })
       } catch (e) {
         if (e.name !== 'AbortError') {
           await navigator.clipboard.writeText(url)
@@ -78,19 +126,47 @@ function ItemDetail() {
     }
   }
 
-  if (loading) return (
-    <>
-      <Menu />
-      <div style={{ textAlign: 'center', padding: '40px' }}>Carregando detalhes...</div>
-    </>
-  )
+  // Tela de carregamento
+  if (loading) {
+    return (
+      <>
+        <Menu />
+        <div style={{ textAlign: 'center', padding: '40px' }}>
+          <p>Carregando detalhes...</p>
+        </div>
+      </>
+    )
+  }
 
-  if (!item) return (
-    <>
-      <Menu />
-      <div style={{ textAlign: 'center', padding: '40px' }}>Item não encontrado</div>
-    </>
-  )
+  // Tela de erro - item não encontrado
+  if (error || !item) {
+    return (
+      <>
+        <Menu />
+        <div style={{ maxWidth: '600px', margin: '0 auto', padding: '40px', textAlign: 'center' }}>
+          <AlertCircle size={48} color="#dc2626" style={{ marginBottom: '16px' }} />
+          <h2 style={{ color: '#1e3a5f', marginBottom: '8px' }}>Item não encontrado</h2>
+          <p style={{ color: '#6b7280', marginBottom: '20px' }}>
+            O item que você está procurando pode ter sido removido ou o link está incorreto.
+          </p>
+          <button
+            onClick={handleVoltar}
+            style={{
+              padding: '10px 24px',
+              backgroundColor: '#1e3a5f',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              fontSize: '14px'
+            }}
+          >
+            Voltar para o acervo
+          </button>
+        </div>
+      </>
+    )
+  }
 
   return (
     <>

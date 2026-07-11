@@ -14,7 +14,7 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Catalog />} />
-        <Route path="/item/:id" element={<ItemDetail />} />
+        <Route path="/item/:slug" element={<ItemDetail />} />
         <Route path="/admin" element={<Admin />} />
         <Route path="/ajuda" element={<Ajuda />} />
         <Route path="/busca-temas" element={<BuscaTemas />} />

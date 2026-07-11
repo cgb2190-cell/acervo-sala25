@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { BookOpen, Puzzle, Sparkles, Filter, Search, Hourglass } from 'lucide-react'
 import Menu from './Menu'
+import { slugify } from '../utils/slugify'
 
 function Catalog() {
   const [items, setItems] = useState([])
@@ -73,13 +74,14 @@ function Catalog() {
   }
 
   function handleItemClick(item) {
-    // Salvar o estado atual (filtro, busca e posição da rolagem)
     const position = scrollPositionRef.current
-    navigate(`/item/${item.id}`, { 
+    const slug = slugify(item.titulo)
+    navigate(`/item/${slug}`, { 
       state: { 
         scrollPosition: position,
         filter: filter,
-        searchTerm: searchTerm
+        searchTerm: searchTerm,
+        itemId: item.id
       }
     })
   }
